@@ -25,7 +25,7 @@ install.packages('devtools')
 ### 2. Install `appstats2`
 
 ```r
-install_github('JonasEngstrom/appstats2', build_vignettes = TRUE)
+devtools::install_github('JonasEngstrom/appstats2', build_vignettes = TRUE)
 ```
 
 ### 3. Load `appstats2`
