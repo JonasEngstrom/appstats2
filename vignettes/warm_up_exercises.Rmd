@@ -1,0 +1,117 @@
+---
+title: "warm_up_exercises"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{warm_up_exercises}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Applied Statistics II—Warm-up exercises
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(appstats2)
+library(tidyverse)
+library(kableExtra)
+```
+
+The instructions below are copied from [the Lund University website](https://canvas.education.lu.se/courses/34580/files/6061874?module_item_id=1441692).
+
+These computer exercises are meant to re-familiarize you with your statistical program and also to serve as a refresher on some of the topics covered during the course *Applied Statistics I*.
+
+You will use the same dataset as in the previous course, SCANIA_SURVEY_1000. The dataset comprises 1000 observations that were randomly chosen from the data file Scania Survey (adults from the population of Skåne, 18 – 80 years old at baseline). The participants have provided answers on a wide range of survey questions about living conditions, life style, environmental aspects and health at three different occasions, year 2000, 2005 and 2010.
+
+## 1. Table with descriptive statistics.
+
+Create the variable BMI based on the participants height and weight in 2000.
+
+```{r bmi-function-definition}
+#' Body Mass Index
+#' 
+#' Calculated body mass index from height and weight.
+#'
+#' @param weight Body weight in kilograms.
+#' @param height Body height in meters.
+#'
+#' @returns Body mass index in kilograms per square meters.
+#' @export
+#'
+#' @examples
+#' bmi(75, 1.81)
+bmi <- function(weight, height) {
+  weight / height ^ 2
+}
+```
+
+```{r bmi-variable-creation}
+bmi_table <-
+  scania_survey_1000 |>
+  mutate(bmi = bmi(weight_00, height_00 / 100))
+```
+
+Next create a table with descriptive statistics separately for smokers and non-smokers for the variables age, BMI and gender in 2000.
+
+```{r descriptive-table}
+bmi_table |>
+  group_by(smoking_00, gender_00) |>
+  summarize(
+    min_age = min(age_00) |> round(1),
+    mean_age = mean(age_00) |> round(1),
+    sd_age = sd(age_00) |> round(1),
+    max_age = max(age_00) |> round(1),
+    min_bmi = min(bmi, na.rm = TRUE) |> round(1),
+    mean_bmi = mean(bmi, na.rm = TRUE) |> round(1),
+    sd_bmi = sd(bmi, na.rm = TRUE) |> round(1),
+    max_bmi = max(bmi, na.rm = TRUE) |> round(1),
+    n = n()
+  ) |>
+  ungroup() |>
+  kbl() |>
+  kable_classic()
+```
+
+## 2. Graphically examine the BMI distribution for smokers and non-smokers.
+
+Does the distribution of BMI differ for smokers and non-smokers?
+
+```{r bmi-distribution}
+bmi_table |>
+  mutate(smoking_00 = smoking_00 == 1) |>
+  ggplot(aes(bmi, group = smoking_00, fill = smoking_00)) +
+  geom_density(alpha = .5) +
+  theme(legend.position = 'bottom')
+```
+
+## 3. Choose an appropriate test to examine if there is a significant BMI difference between smokers and non-smokers.
+
+```{r bmi-test}
+wilcox.test(bmi_table |> pull(bmi) ~ bmi_table |> pull(smoking_00))
+```
+
+a. which variable is the outcome and what is the type of the outcome?  
+*BMI is the outcome. It is continuous.*
+
+b. do you compare dependent or independent groups?  
+*Independent groups.*
+
+c. what is the conclusion?  
+*There is a difference.*
+
+## 4. Choose an appropriate test to examine if there is a significant association between gender and smoking.
+
+```{r smoking-test}
+chisq.test(scania_survey_1000 |> pull(smoking_00), scania_survey_1000 |> pull(gender_00))
+```
+
+a. which variable is the outcome and what is the type of the outcome?  
+*Smoking is the outcome. It is dichotomous.*
+
+b. what is the conclusion?  
+*There is a difference.*
