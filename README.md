@@ -32,3 +32,19 @@ devtools::install_github('JonasEngstrom/appstats2', build_vignettes = TRUE)
 ```r
 library(appstats2)
 ```
+
+## Available Datasets
+
+The datasets are used by simply typing their names in the terminal. To bring up
+the help file for a dataset, start the line with a questionmark. I.e. to bring
+up the help for the `scania_survey_1000` dataset, enter `?scania_survey_1000`.
+
+- `scania_survey_1000` [Dataset](https://canvas.education.lu.se/courses/34580/files/6061872?module_item_id=1441697) used in the [warm-up exercises](https://canvas.education.lu.se/courses/34580/files/6061874?module_item_id=1441692).
+
+## Available Vignettes
+
+To bring up the vignettes in the package use the following command:
+
+```r
+browseVignettes('appstats2')
+```
