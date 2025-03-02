@@ -1,4 +1,4 @@
-Package: Applied Statistics II—Clinical and Epidemiological Research
+Package: appstats2
 Type: Package
 Title: Datasets and Exercises from the Course Applied Statistics II
 Version: 0.1.0
@@ -9,7 +9,7 @@ Authors@R: c(
       role = c('aut', 'cre')
     )
   )
-Description: Datasets and exercises from the course Applied Statistics II—
+Description: Datasets and exercises from the course Applied Statistics II -
     Clinical and Epidemiological Research (METSKF2) at Lund University, starting
     March 2025.
 License: file LICENSE
