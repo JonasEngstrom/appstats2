@@ -4,7 +4,9 @@
 #' data file Scania Survey (adults from the population of Skåne, 18 – 80 years
 #' old at baseline). The participants have provided answers on a wide range of
 #' survey questions about living conditions, life style, environmental aspects
-#' and health at three different occasions, year 2000, 2005 and 2010.
+#' and health at three different occasions, year 2000, 2005 and 2010. The
+#' dataset is used in the [warm-up
+#' exercises](https://canvas.education.lu.se/courses/34580/files/6061874?module_item_id=1441692).
 #'
 #' @format ## `scania_survey_1000` A data frame with 1,000 rows and 30 columns:
 #' \describe{
@@ -31,6 +33,7 @@
 #'   \item{sei_00, sei_05, sei_10}{Unclear variable surveyed in the year 2000, 2005, and 2010 (1 = ?, ..., 12 = ?, 99 = ?). 283, 0, and 0 missing values (assuming 99 does not denote missing values).}
 #'   \item{sickdays_00, sickdays_05}{Number of sickdays, presumably during a year, in the year 2000 and 2005. 711 and 746 missing values.}
 #' }
+#' @md
 #' @source
-#'   <https://canvas.education.lu.se/courses/34580/files/6061872?module_item_id=1441697>
+#' <https://canvas.education.lu.se/courses/34580/files/6061872?module_item_id=1441697>
 "scania_survey_1000"
