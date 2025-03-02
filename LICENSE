@@ -2,4 +2,8 @@
 
 Copyright (c) 2025 Jonas Engström. All rights reserved.
 
+<<<<<<< HEAD
 This does not include datasets and exercise instructions, which are publicly avaible on the Lund University website. See README.md for futher information.
+=======
+This does not include datasets and exercise instructions, which are publicly available on the Lund University website. See README.md for further information.
+>>>>>>> b9808a2 (Initial commit.)
