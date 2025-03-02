@@ -1,8 +1,7 @@
 # Applied Statistics II—Clinical and Epidemiological Research
 
-Datasets and exercises from the course Applied Statistics II—
-Clinical and Epidemiological Research (METSKF2) at Lund University, starting
-March 2025.
+Datasets and exercises from the course Applied Statistics II—Clinical and
+Epidemiological Research (METSKF2) at Lund University, starting March 2025.
 
 > [!IMPORTANT]
 > The datasets and instructions for exercises included in this package are
