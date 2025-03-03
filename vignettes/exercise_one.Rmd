@@ -1,0 +1,82 @@
+---
+title: "exercise_one"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{exercise_one}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Exercise 1: Analyses of 2-by-2 tables
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(appstats2)
+library(tidyverse)
+library(kableExtra)
+```
+
+The instructions below are copied from [the Lund University website](https://canvas.education.lu.se/courses/34580/files/6116314?module_item_id=1441704).
+
+We strongly recommend using syntax when solving the exercises in this course and that you intersperse the syntax files with informative comments. By doing this, you can get back to your analysis at a later point to check what you have done and to make relevant changes. You do not need to hand in any syntax files from the computer exercises during the first course week; however, this will be required for the project and the exam.
+
+Note that there are program-specific **hints** for the computer exercises, which you are welcome to look at. The hints for this lab also introduce script-based data analysis.
+
+## Analysis of 2-by-2 tables
+
+### A cohort study
+
+The Framingham Heart Study (Levy, 1999) has collected long-term follow-up and cardiovascular risk factor data on almost 5000 residents of the town of Framingham, Massachusetts. Recruitment of subjects started in 1948. At the time of the baseline exams there were no effective treatments for hypertension. The subjects were free of coronary heart disease at the baseline exam.
+
+We will use variables registered and measured at this exam, some **derived variables** and also simulated data (for teaching purposes). The variables we have selected for this exercise are: sex, age, Body Mass Index (BMI), Serum Cholesterol (SCL), systolic blood pressure (SBP), diastolic blood pressure (DBP), and smoker. The variable hypertension (ht) has been derived from the two blood pressure variables:
+
+ht = 1 (TRUE) if SBP ≥ 140 or DBP ≥ 90, 0 (FALSE) otherwise
+
+Finally, two variables from the 40-year follow-up have been added to the dataset: fu_years, the individual’s follow-up time in years, and a **binary outcome variable** chd_event (1 for CHD event at last follow-up; 0 otherwise).
+
+The dataset *bloodpressure*, which you find on the course web site, is a subset of the 40-year data.
+
+Read the data into your statistics package (see the program-specific hints).
+
+1. As a first task, we investigate the association between smoking and hypertension.
+    a) Tabulate the data (2x2 table; smoker in rows and ht in columns). Do you prefer row- or column percentages? Why?
+    b) Conduct a statistical test of whether hypertension is equally common in smokers and non-smokers.
+    c) Summarize the relationship between smoking and hypertension by one or several **measures of association**. First, calculate your measure(s) based on the 2x2 table by hand or your cell phone calculator. Then try to find a built-in command in your software and check if it gives you the same result.
+
+### Incidence rates
+
+2. Investigate if hypertension (ht) is a risk factor for cardiovascular disease by calculating and comparing the incidence rates of CHD in the two ht-groups. Hint: A crosstab of ht vs chd_event contains the numerators, i.e., the number of (first) disease events per ht-group. The denominators would be the total number of person-years in each ht-group.
+
+We will return to the blood pressure dataset many times during this course, but not during this exercise, so save the syntax/script and close the dataset. If you have followed the instructions above, you do not have to save the dataset; it has not been modified.
+
+### A case-control study
+
+Feldkamp and co-authors investigated the association between genitourinary infections in the month before conception to the end of the first trimester, and gastroschisis. The study was published in BMJ 2008: 336(7658):1420-3. The data can be summarized in a table like below:
+
+```{r feldkamp-table, echo=FALSE}
+tibble(
+  `Mother exposed to infection?` = c('No', 'Yes'),
+  Control = c(4499, 425),
+  Case = c(424, 81)
+) |>
+  kbl()
+```
+
+Read the dataset **Feldkamp** from file. We suggest that you use separate syntax-files for separate projects. Like the previous one, this syntax file should start by reading the dataset into your statistics package and proceed with the relevant analyses interspersed with comments. Note that once you have connected the datafile to the analyses performed in the script you do not have to save any results (OUTPUT in SPSS). The same output will always be produced when the syntax is executed (**reproducible statistical analyses!**). Keep only the relevant commands in the final syntax file, i.e. delete all the code sections corresponding to attempts that did not produce the intended output.
+
+3. Analyze the data. Are row or column percentages, or both, relevant? Calculate an appropriate effect measure.
+
+4. Confounding (lack of comparability between cases and controls) is always an issue in observational studies. What type of information could be relevant to include in the analysis (if collected)?
+
+5. Why do you think they designed the study as a case-control study and not a cohort study?
+
+6. What is the prevalence of the disease (Google search)?
+
+The paper by Feldkamp et al. can be found on the course web site. Browse through/read it.
+|> 

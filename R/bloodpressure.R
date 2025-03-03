@@ -8,12 +8,12 @@
 #'   \item{id}{Participant ID.}
 #'   \item{sex}{Sex.}
 #'   \item{age}{Age.}
-#'   \item{BMI}{BMI.}
-#'   \item{SCL}{Unclear variable.}
+#'   \item{BMI}{Body mass index.}
+#'   \item{SCL}{Serum cholesterol.}
 #'   \item{SBP}{Systolic variable.}
 #'   \item{DBP}{Diastolic variable.}
-#'   \item{ht}{Unclear variable.}
-#'   \item{chd_event}{Unclear variable.}
+#'   \item{ht}{Hypertension. TRUE if SBP ≥ 140 or DBP ≥ 90, FALSE otherwise.}
+#'   \item{chd_event}{CHD event at last follow-up.}
 #'   \item{smoker}{Smoker.}
 #'   \item{fu_years}{Follow-up years.}
 #' }
