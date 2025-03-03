@@ -79,4 +79,3 @@ Read the dataset **Feldkamp** from file. We suggest that you use separate syntax
 6. What is the prevalence of the disease (Google search)?
 
 The paper by Feldkamp et al. can be found on the course web site. Browse through/read it.
-|> 
