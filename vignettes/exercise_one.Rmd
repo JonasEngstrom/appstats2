@@ -1,5 +1,6 @@
 ---
 title: "exercise_one"
+author: "Jonas Engström"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{exercise_one}
@@ -16,7 +17,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
+```{r setup, message=FALSE}
 library(appstats2)
 library(tidyverse)
 library(kableExtra)
@@ -44,7 +45,7 @@ The dataset *bloodpressure*, which you find on the course web site, is a subset 
 
 Read the data into your statistics package (see the program-specific hints).
 
-> The data is loaded in this document using the command `library(appstats2)` in the code chunk above. For the sourceode importing the data from the provided Excel file and formatting it as a tibble, please see the file [`bloospressure.R`](https://github.com/JonasEngstrom/appstats2/blob/main/data-raw/bloodpressure.R).
+> The data is loaded in this document using the command `library(appstats2)` in the code chunk above. For the sourcecode importing the data from the provided Excel file and formatting it as a tibble, please see the file [`bloodpressure.R`](https://github.com/JonasEngstrom/appstats2/blob/main/data-raw/bloodpressure.R).
 
 1. As a first task, we investigate the association between smoking and hypertension.
 
@@ -60,7 +61,7 @@ Read the data into your statistics package (see the program-specific hints).
           ~ case_match(
             .,
             TRUE ~ 'Smoker',
-            FALSE ~ 'Non-Smoker'
+            FALSE ~ 'Non-smoker'
           )
         ),
         across(
@@ -68,7 +69,7 @@ Read the data into your statistics package (see the program-specific hints).
           ~ case_match(
             .,
             TRUE ~ 'Hypertension',
-            FALSE ~ 'No Hypertension'
+            FALSE ~ 'No hypertension'
           )
         )
       ) |>
@@ -78,7 +79,7 @@ Read the data into your statistics package (see the program-specific hints).
       summarize(n = n()) |>
       spread(smoker, n) |>
       ungroup() |>
-      relocate('Non-Smoker', .after = Smoker) |>
+      relocate('Non-smoker', .after = Smoker) |>
       
       # Format crosstable for nicer output.
       rename(' ' = ht) |>
@@ -87,7 +88,7 @@ Read the data into your statistics package (see the program-specific hints).
     ```
     
     > Both row and column percentages could be informative, depending on whether one is interested in what proportion of smokers have hypertension or what proportion of people with hypertension smoke.
-    
+
     b) Conduct a statistical test of whether hypertension is equally common in smokers and non-smokers.
     
     ```{r smoking-test}
@@ -96,14 +97,56 @@ Read the data into your statistics package (see the program-specific hints).
     
     c) Summarize the relationship between smoking and hypertension by one or several **measures of association**. First, calculate your measure(s) based on the 2x2 table by hand or your cell phone calculator. Then try to find a built-in command in your software and check if it gives you the same result.
     
-    ```{r measure-of-association}
-    # Manual calculation. Relative risk of hypertension for smoker vs non-smokers.
+    ```{r manual-measure-of-association}
+    # Manual calculation. Relative risk of hypertension for smokers vs non-smokers.
     (136 / (136 + 132)) / (45 / (45 + 126))
+    ```
+    
+    ```{r built-in-measure-of-association, message=FALSE}
+    # Calculation using software. Relative risk of hypertension for smokers vs non-smokers.
+    bloodpressure |>
+      group_by(smoker, ht) |>
+      summarize(n = n()) |>
+      mutate(sum = sum(n), percentage = n / sum) |>
+      filter(ht) |>
+      select(smoker, percentage) |>
+      pivot_wider(names_from = smoker, values_from = percentage) |>
+      mutate(relative_risk = `TRUE` / `FALSE`) |>
+      pull(relative_risk)
     ```
 
 ### Incidence rates
 
 2. Investigate if hypertension (ht) is a risk factor for cardiovascular disease by calculating and comparing the incidence rates of CHD in the two ht-groups. Hint: A crosstab of ht vs chd_event contains the numerators, i.e., the number of (first) disease events per ht-group. The denominators would be the total number of person-years in each ht-group.
+
+    ```{r chd-incidence}
+    bloodpressure |>
+      
+      # Recode hypertension variable for better readability.
+      mutate(
+        across(
+          ht,
+          ~ case_match(
+            .,
+            TRUE ~ 'Hypertension',
+            FALSE ~ 'No hypertension'
+          )
+        )
+      ) |>
+      
+      # Calculate incidence rates for CHD events per hypertension group.
+      group_by(ht) |>
+      summarize(
+        total_chd_events = sum(chd_event),
+        total_fu_years = sum(fu_years)
+      ) |>
+      mutate(incidence_per_1000_years = total_chd_events / total_fu_years * 1000) |>
+      
+      # Format table for nicer output.
+      select(' ' = ht, 'Incidence of CHD events per 1,000 follow-up years' = incidence_per_1000_years) |>
+      kbl() |>
+      kable_classic()
+    ```
 
 We will return to the blood pressure dataset many times during this course, but not during this exercise, so save the syntax/script and close the dataset. If you have followed the instructions above, you do not have to save the dataset; it has not been modified.
 
@@ -122,7 +165,62 @@ tibble(
 
 Read the dataset **Feldkamp** from file. We suggest that you use separate syntax-files for separate projects. Like the previous one, this syntax file should start by reading the dataset into your statistics package and proceed with the relevant analyses interspersed with comments. Note that once you have connected the datafile to the analyses performed in the script you do not have to save any results (OUTPUT in SPSS). The same output will always be produced when the syntax is executed (**reproducible statistical analyses!**). Keep only the relevant commands in the final syntax file, i.e. delete all the code sections corresponding to attempts that did not produce the intended output.
 
+> The data is loaded in this document using the command `library(appstats2)` in the code chunk above. For the sourcecode importing the data from the provided Excel file and formatting it as a tibble, please see the file [`bloodpressure.R`](https://github.com/JonasEngstrom/appstats2/blob/main/data-raw/bloodpressure.R).
+
 3. Analyze the data. Are row or column percentages, or both, relevant? Calculate an appropriate effect measure.
+
+> Both would be relevant if we want to know the exposure to infection as well as the incidence of gastroschisis.
+
+```{r odds-ratio-function-definition}
+#' Odds Ratio
+#' 
+#' Calculated the odds ratio given information on cases, controls, and exposure.
+#'
+#' @param exposed_cases The number of cases that were exposed.
+#' @param unexposed_cases The number of cases that were not exposed.
+#' @param exposed_controls The number of controls that were exposed.
+#' @param unexposed_controls The number of controls that where not exposed.
+#'
+#' @returns Th odds ratio.
+#' @export
+#'
+#' @examples
+#' odds_ratio(5, 2, 2, 5)
+odds_ratio <- function(exposed_cases, unexposed_cases, exposed_controls, unexposed_controls) {
+  (exposed_cases / unexposed_cases) / (exposed_controls / unexposed_controls)
+}
+```
+    
+```{r feldkamp-exposure-and-cases, message=FALSE}
+feldkamp |>
+  mutate(
+    across(
+      case,
+      ~ case_match(
+        .,
+        TRUE ~ 'case',
+        FALSE ~ 'control'
+      )
+    ),
+    across(
+      m_inf,
+      ~ case_match(
+        .,
+        TRUE ~ 'exposed',
+        FALSE ~ 'unexposed'
+      )
+    )
+  ) |>
+  group_by(case, m_inf) |>
+  summarize(n = n()) |>
+  pivot_wider(names_from = c(case, m_inf), values_from = n) |>
+  (\(x) odds_ratio(
+    exposed_cases = x |> pull(case_exposed),
+    unexposed_cases = x |> pull(case_unexposed),
+    exposed_controls = x |> pull(control_exposed),
+    unexposed_controls = x |> pull(control_unexposed)
+  ))()
+```
 
 4. Confounding (lack of comparability between cases and controls) is always an issue in observational studies. What type of information could be relevant to include in the analysis (if collected)?
 
