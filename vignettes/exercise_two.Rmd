@@ -37,6 +37,8 @@ Be careful to save all useful commands in a *well-commented syntax file* (meanin
 
 1. ***Use the program-specific hints*** for opening your software, creating a ***new syntax file*** and reading the blood-pressure data. The next step is to get acquainted to the data by browsing, plotting, summarizing or tabulating some of the variables.
 
+> The data is loaded in this document using the command `library(appstats2)` in the code chunk above. For the sourcecode importing the data from the provided Excel file and formatting it as a tibble, please see the file [`bloodpressure.R`](https://github.com/JonasEngstrom/appstats2/blob/main/data-raw/bloodpressure.R).
+
 ### Plot the data
 
 2. Our first focus will be on Systolic blood pressure (SBP), so start by plotting SBP vs sex, SBP vs BMI and SBP vs smoking. Inspect each of the graphs and describe
