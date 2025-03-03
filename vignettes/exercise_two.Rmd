@@ -91,6 +91,16 @@ Be careful to save all useful commands in a *well-commented syntax file* (meanin
 
 3. Calculate and compare the Pearson and Spearman correlation of SBP and BMI.
 
+```{r pearson}
+cor(bloodpressure |> pull(SBP), bloodpressure |> pull(BMI), method = 'pearson')
+```
+
+```{r spearman}
+cor(bloodpressure |> pull(SBP), bloodpressure |> pull(BMI), method = 'spearman')
+```
+
+> The Spearman coefficient is slightly higher than the Pearson coefficient.
+
 ### Linear regression
 
 The first interest of the researchers is the relation between BMI and SBP.
