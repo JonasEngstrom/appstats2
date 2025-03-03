@@ -16,7 +16,7 @@
 \item{SBP}{Systolic variable.}
 \item{DBP}{Diastolic variable.}
 \item{ht}{Hypertension. TRUE if SBP ≥ 140 or DBP ≥ 90, FALSE otherwise.}
-\item{chd_event}{CHD event at last follow-up.}
+\item{chd_event}{Coronary heart disease event at last follow-up.}
 \item{smoker}{Smoker.}
 \item{fu_years}{Follow-up years.}
 }
