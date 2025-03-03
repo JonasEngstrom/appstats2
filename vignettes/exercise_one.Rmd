@@ -224,8 +224,33 @@ feldkamp |>
 
 4. Confounding (lack of comparability between cases and controls) is always an issue in observational studies. What type of information could be relevant to include in the analysis (if collected)?
 
+> Age, comorbiditiesd, drug/alchool/nicotine use, genetic disorders in close family members, external events during pregnancy (e.g. increased dioxin levels in the environment, Chernobyl etc.) among other things.
+
 5. Why do you think they designed the study as a case-control study and not a cohort study?
 
+> Pregnancy may not occur at the same time in all case-control pairs. Gastroschisis is also a farily uncommon condition.
+
 6. What is the prevalence of the disease (Google search)?
+
+> |Location|Time period|Prevalence|Reference|
+> |-|-|-|-|
+> |South West Virginia, USA|2006-01-01 to 2020-12-31|14.6 per 10,000 live births|Minor J, Wells A, Orminski K, et al. Prevalence and Spatial Distribution of Gastroschisis in an Industrial Watershed. *Am Surg.* 2023;89(11):5017-5020. doi:10.1177/00031348231192051|
+> |Eastern Cape Province, South Africa|2016-01-01 to 2018-12-31|0.07% to 0.18%|Machaea SS, Chitnis MR, Nongena P. Prevalence of gastroschisis and its neonatal mortality in the Eastern Cape Province tertiary institutions. *Afr J Paediatr Surg.* 2023;20(1):46-50. doi:10.4103/ajps.ajps_178_21|
+> |Mexico|2000 to 2014|4.01 per 10,000 live births|Salinas-Torres VM, Salinas-Torres RA, Cerda-Flores RM, Martínez-de-Villarreal LE. Prevalence, Mortality, and Spatial Distribution of Gastroschisis in Mexico. *J Pediatr Adolesc Gynecol.* 2018;31(3):232-237. doi:10.1016/j.jpag.2017.12.013|
+> |Arkansas, USA|1998 to 2005|5.8 per 10,000 live births|ELHassan NO, Young SG, Gokun Y, Wan F, Nembhard WN. Trends in prevalence and spatiotemporal distribution of gastroschisis in Arkansas, 1998-2015. *Birth Defects Res.* 2020;112(18):1484-1494. doi:10.1002/bdr2.1772|
+> |34 Amercian states and Puerto Rico|1997-01-01 to 2015-12-12|5.2 per 1,000 discharged NICU patients|Allman R, Sousa J, Walker MW, Laughon MM, Spitzer AR, Clark RH. The epidemiology, prevalence and hospital outcomes of infants with gastroschisis. *J Perinatol.* 2016;36(10):901-905. doi:10.1038/jp.2016.99|
+> |24 European, Latin American, and North American countries and Iran|1980 to 2017|3.06 per 10,000 births|Feldkamp ML, Canfield MA, Krikov S, et al. Gastroschisis prevalence patterns in 27 surveillance programs from 24 countries, International Clearinghouse for Birth Defects Surveillance and Research, 1980-2017. *Birth Defects Res.* 2024;116(2):e2306. doi:10.1002/bdr2.2306|
+> |USA|2009 to 2013|2.04 to 2.49 per 10,000 births|Brebner A, Czuzoj-Shulman N, Abenhaim HA. Prevalence and predictors of mortality in gastroschisis: a population-based study of 4803 cases in the USA. *J Matern Fetal Neonatal Med.* 2020;33(10):1725-1731. doi:10.1080/14767058.2018.1529163|
+> |Guadalajara, Mexico|2009 to 2013|17.6 per 10,000 live births|Robledo-Aceves M, Bobadilla-Morales L, Mellín-Sánchez EL, et al. Prevalence and risk factors for gastroschisis in a public hospital from west México. *Congenit Anom (Kyoto).* 2015;55(2):73-80. doi:10.1111/cga.12087|
+> |Sweden|1997-01-01 to 2016-12-31|1.52 in 10,000 live births|Caldeman C, Fogelström A, Oddsberg J, Mesas Burgos C, Löf Granström A. National birth prevalence, associated anomalies and mortality for gastroschisis in Sweden. *Acta Paediatr.* 2021;110(9):2635-2640. doi:10.1111/apa.15954|
+> |USA|2010 to 2018|4.3 per 10,000 live births|Bhatt P, Poku FA, Umscheid J, et al. Trends in prevalence and mortality of gastroschisis and omphalocele in the United States from 2010 to 2018. *World J Pediatr.* 2022;18(7):511-514. doi:10.1007/s12519-022-00544-2|
+> |Denmark|1994 to 2021|1.64 per 10,000 live births|Lausten-Thomsen U, Hedley PL, Conway KM, et al. Gastroschisis Prevalence and Co-occurring Malformations Among Danish Live Births During 1994-2021: A Nationwide Register-Based Study. *J Pediatr Surg.* 2024;59(12):161931. doi:10.1016/j.jpedsurg.2024.161931|
+> |15 American States|1995 to 2005|2.32 to 4.42 per 10,000 live births|Kirby RS, Marshall J, Tanner JP, et al. Prevalence and correlates of gastroschisis in 15 states, 1995 to 2005. *Obstet Gynecol.* 2013;122(2 Pt 1):275-281. doi:10.1097/AOG.0b013e31829cbbb4|
+> |Finland|1993 to 2014|2.57 per 10,000 pregnancies, 1.73 per 10,000 live births|Raitio A, Lahtinen A, Syvänen J, et al. Gastroschisis in Finland 1993 to 2014-Increasing Prevalence, High Rates of Abortion, and Survival: A Population-Based Study. *Eur J Pediatr Surg.* 2020;30(6):536-540. doi:10.1055/s-0039-3401797|
+> |Northern England|1997 to 2006|4.28 per 10,000 births, 4.21 per 10,000 live births|Fillingham A, Rankin J. Prevalence, prenatal diagnosis and survival of gastroschisis. *Prenat Diagn.* 2008;28(13):1232-1237. doi:10.1002/pd.2153|
+> |Texas, USA|1999 to 2011|5.13 per 10,000 live births|Vo LU, Langlois PH. Time trends in prevalence of gastroschisis in Texas, 1999 to 2011: Subgroup analyses by maternal and infant characteristics. *Birth Defects Res A Clin Mol Teratol.* 2015;103(11):928-940. doi:10.1002/bdra.23438|
+> |Global review of 53 studies|1969 to 2024|1.79 (95% CI: 1.55–2.07) per 10,000 births.|Xie X, Pei J, Zhang L, Wu Y. Global birth prevalence of major congenital anomalies: a systematic review and meta-analysis. *BMC Public Health.* 2025;25(1):449. Published 2025 Feb 4. doi:10.1186/s12889-025-21642-6|
+
+> The above are a selection of the first relevant hits for the [PubMed Search (gastroschisis[MeSH Terms]) AND (prevalence[MeSH Terms])](https://pubmed.ncbi.nlm.nih.gov/?term=%28gastroschisis%5BMeSH+Terms%5D%29+AND+%28prevalence%5BMeSH+Terms%5D%29&ac=no&sort=relevance) on 2025-03-03.
 
 The paper by Feldkamp et al. can be found on the course web site. Browse through/read it.
