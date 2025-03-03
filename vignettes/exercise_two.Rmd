@@ -13,7 +13,10 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.width = 8.9,
+  fig.height = 5,
+  out.width = "100%"
 )
 ```
 
@@ -42,8 +45,49 @@ Be careful to save all useful commands in a *well-commented syntax file* (meanin
 ### Plot the data
 
 2. Our first focus will be on Systolic blood pressure (SBP), so start by plotting SBP vs sex, SBP vs BMI and SBP vs smoking. Inspect each of the graphs and describe
+
+    ```{r plot-sbp-bmi}
+    bloodpressure |>
+      ggplot(aes(x=SBP, y=BMI)) +
+      geom_point() +
+      labs(
+        title = 'Systolic blood pressure vs body mass index',
+        x = 'Systolic Blood Pressure (mmHg)',
+        y = 'Body Mass Index (kg/m^2)'
+      )
+    ```
+
+    ```{r plot-sbp-sex}
+    bloodpressure |>
+      mutate(sex = as.factor(sex)) |>
+      ggplot(aes(x=SBP, y=sex)) +
+      geom_jitter() +
+      labs(
+        title = 'Systolic blood pressure vs sex',
+        x = 'Systolic Blood Pressure (mmHg)',
+        y = 'Sex'
+      )
+    ```
+
+    ```{r plot-sbp-smoking}
+    bloodpressure |>
+      mutate(smoker = as.factor(smoker)) |>
+      ggplot(aes(x=SBP, y=smoker)) +
+      geom_jitter() +
+      labs(
+        title = 'Systolic blood pressure vs smoking',
+        x = 'Systolic Blood Pressure (mmHg)',
+        y = 'Smoker'
+      )
+    ```
+    
     - how SBP varies with sex, smoking and BMI respectively?
+    
+    > SBP seems to be higher with higher BMI and possibly with smoking and with sex number 2.
+    
     - if there are potential outliers in the data?
+    
+    > Yes, there is.
 
 3. Calculate and compare the Pearson and Spearman correlation of SBP and BMI.
 
