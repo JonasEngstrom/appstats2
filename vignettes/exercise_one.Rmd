@@ -24,7 +24,7 @@ library(kableExtra)
 
 The instructions below are copied from [the Lund University website](https://canvas.education.lu.se/courses/34580/files/6116314?module_item_id=1441704).
 
-We strongly recommend using syntax when solving the exercises in this course and that you intersperse the syntax files with informative comments. By doing this, you can get back to your analysis at a later point to check what you have done and to make relevant changes. You do not need to hand in any syntax files from the computer exercises during the first course week; however, this will be required for the project and the exam.
+We strongly recommend using *syntax* when solving the exercises in this course and that you intersperse the syntax files with informative comments. By doing this, you can get back to your analysis at a later point to check what you have done and to make relevant changes. You do not need to hand in any syntax files from the computer exercises during the first course week; however, this will be required for the project and the exam.
 
 Note that there are program-specific **hints** for the computer exercises, which you are welcome to look at. The hints for this lab also introduce script-based data analysis.
 
@@ -44,10 +44,62 @@ The dataset *bloodpressure*, which you find on the course web site, is a subset 
 
 Read the data into your statistics package (see the program-specific hints).
 
+> The data is loaded in this document using the command `library(appstats2)` in the code chunk above. For the sourceode importing the data from the provided Excel file and formatting it as a tibble, please see the file [`bloospressure.R`](https://github.com/JonasEngstrom/appstats2/blob/main/data-raw/bloodpressure.R).
+
 1. As a first task, we investigate the association between smoking and hypertension.
+
     a) Tabulate the data (2x2 table; smoker in rows and ht in columns). Do you prefer row- or column percentages? Why?
+    
+    ```{r data-tabulation, message=FALSE}
+    bloodpressure |>
+      
+      # Recode hypertension and smoker variables for better readability.
+      mutate(
+        across(
+          smoker,
+          ~ case_match(
+            .,
+            TRUE ~ 'Smoker',
+            FALSE ~ 'Non-Smoker'
+          )
+        ),
+        across(
+          ht,
+          ~ case_match(
+            .,
+            TRUE ~ 'Hypertension',
+            FALSE ~ 'No Hypertension'
+          )
+        )
+      ) |>
+      
+      # Make crosstable.
+      group_by(smoker, ht) |>
+      summarize(n = n()) |>
+      spread(smoker, n) |>
+      ungroup() |>
+      relocate('Non-Smoker', .after = Smoker) |>
+      
+      # Format crosstable for nicer output.
+      rename(' ' = ht) |>
+      kbl() |>
+      kable_classic()
+    ```
+    
+    > Both row and column percentages could be informative, depending on whether one is interested in what proportion of smokers have hypertension or what proportion of people with hypertension smoke.
+    
     b) Conduct a statistical test of whether hypertension is equally common in smokers and non-smokers.
+    
+    ```{r smoking-test}
+    chisq.test(bloodpressure |> pull(smoker), bloodpressure |> pull(ht))
+    ```
+    
     c) Summarize the relationship between smoking and hypertension by one or several **measures of association**. First, calculate your measure(s) based on the 2x2 table by hand or your cell phone calculator. Then try to find a built-in command in your software and check if it gives you the same result.
+    
+    ```{r measure-of-association}
+    # Manual calculation. Relative risk of hypertension for smoker vs non-smokers.
+    (136 / (136 + 132)) / (45 / (45 + 126))
+    ```
 
 ### Incidence rates
 
