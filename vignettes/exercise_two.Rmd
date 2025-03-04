@@ -260,10 +260,35 @@ Although not of primary interest in the original study, we will for pedagogic re
 
 1. Start by investigating if hypertension is equally common among males and females in the population from which this sample was drawn. To do this:
     - Make a crosstable for ht vs sex, with the most relevant percentages included.
+    
+    ```{r ht-sex-crosstable, message=FALSE}
+    bloodpressure |>
+      group_by(sex, ht) |>
+      summarize(n = n()) |>
+      mutate(percentage = n / sum(n) * 100) |>
+      pivot_wider(names_from = ht, values_from = c(n, percentage)) |>
+      select(
+        Sex = sex,
+        `Non Hypertension` = n_FALSE,
+        `Hypertension` = n_TRUE,
+        `Percentage with Hypertension` = percentage_TRUE
+      ) |>
+      kbl()
+    ```
+    
     - Calculate by hand the relative risk of ht for men compared to women.
+    
+    > $\frac{45.3}{38.2}\approx1.19$
+    
     - Calculate by hand the corresponding odds ratio (OR)
+    
+    > $\frac{\frac{86}{95}}{\frac{104}{154}}\approx1.34$
 
 2. Now, fit a logistic regression model to investigate the effect of (male) sex on outcome ht.
+    ```{r}
+    
+    ```
+    
     - Compare with the results you calculated by hand.
     - Is there evidence of an effect of sex on ht?
 

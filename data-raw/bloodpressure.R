@@ -15,6 +15,17 @@ bloodpressure <-
         0 ~ FALSE,
         1 ~ TRUE
       )
+    ),
+    across(
+      c(
+        sex
+      ),
+      ~ case_match(
+        .,
+        1 ~ 'Male',
+        2 ~ 'Female'
+      ) |>
+        as.factor()
     )
   )
 
