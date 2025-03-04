@@ -100,11 +100,11 @@ Be careful to save all useful commands in a *well-commented syntax file* (meanin
 3. Calculate and compare the Pearson and Spearman correlation of SBP and BMI.
 
     ```{r pearson}
-    cor(bloodpressure |> pull(SBP), bloodpressure |> pull(BMI), method = 'pearson')
+    cor.test(bloodpressure |> pull(SBP), bloodpressure |> pull(BMI), method = 'pearson')
     ```
 
     ```{r spearman}
-    cor(bloodpressure |> pull(SBP), bloodpressure |> pull(BMI), method = 'spearman')
+    cor.test(bloodpressure |> pull(SBP), bloodpressure |> pull(BMI), method = 'spearman', exact = FALSE)
     ```
 
 > The Spearman coefficient is slightly higher than the Pearson coefficient.
@@ -410,7 +410,7 @@ recoded_bmi <-
 
     ```{r binned-ht-bmi-logistic-model}
     binned_ht_bmi_logistic_model <-
-      glm(ht ~ BMI_4, 'binomial', recoded_bmi)
+      glm(ht ~ BMI_4_label |> factor(ordered=FALSE), 'binomial', recoded_bmi)
     summary(binned_ht_bmi_logistic_model)
     ```
 
@@ -432,8 +432,35 @@ recoded_bmi <-
     > It seems to be comparing catgories to underweight.
 
 7. It is suboptimal to use a very small category as reference category. An alternative is to use e.g. normal weight as reference category. This is straightforward in R and STATA, and also in SPSS - if you use syntax. (See Hints!)
+
+    ```{r recode-bmi-again}
+    recoded_bmi <-
+      recoded_bmi |>
+      mutate(BMI_4_norm = BMI_4_label |> factor(ordered = FALSE) |> relevel(ref='Normal'))
+    ```
+
     - Perform a logistic regression analysis with ht as dependent variable and the new ordered categorical BMI-variable (BMI_4) as a factor on 4 levels with normal weight as the reference category (3 degrees of freedom; 3 OR:s will be estimated relative to the reference category).
+    
+    ```{r recoded-bmi-model}
+    recoded_ht_bmi_logistic_model <-
+      glm(ht ~ BMI_4_norm, 'binomial', recoded_bmi)
+    summary(recoded_ht_bmi_logistic_model)
+    ```
+    
     - Interpret the result and compare effect sizes, confidence intervals and p-values to the previous results.
+    
+    ```{r recoded-ht-bmi-coefficients, message=FALSE}
+    cbind(
+      coefficients = coef(recoded_ht_bmi_logistic_model),
+        exp(
+          cbind(
+            odds_ratio = coef(recoded_ht_bmi_logistic_model),
+            confint(recoded_ht_bmi_logistic_model)
+          )
+        )
+      ) |>
+      kbl()
+    ```
 
 ## Extra exercises—linear regression
 
