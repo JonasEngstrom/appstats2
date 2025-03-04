@@ -285,21 +285,65 @@ Although not of primary interest in the original study, we will for pedagogic re
     > $\frac{\frac{86}{95}}{\frac{104}{154}}\approx1.34$
 
 2. Now, fit a logistic regression model to investigate the effect of (male) sex on outcome ht.
-    ```{r}
     
+    ```{r ht_sex_logistic_model}
+    ht_sex_logistic_model <-
+      glm(ht ~ sex, 'binomial', bloodpressure)
+    summary(ht_sex_logistic_model)
     ```
     
     - Compare with the results you calculated by hand.
+    
+    > The odds ratio for male sex in the logistic regression model is $10^{0.2930}\approx1.96$.
     - Is there evidence of an effect of sex on ht?
+    
+    > The p-value for sex in the logstic regression model i 0.13. So no.
 
 ### Logistic regression with a linear exposure
 
 3. The next step is to investigate if BMI is related to ht. Start by looking at data; simplest (but slightly backward) in a boxplot of BMI separated for ht-status.
 
+```{r ht-bmi-boxplot}
+bloodpressure |>
+  ggplot(aes(x = BMI, y = ht)) +
+    geom_boxplot() +
+    labs(
+      title = 'Body Mass Index by Hypertension Status',
+      x = 'Body Mass Index (kg/m^2)',
+      y = 'Hypertension'
+    )
+```
+
 4. Now fit a logistic regression model for the effect of BMI (as a linear covariate) on ht.
+
+    ```{r ht-bmi-logistic-model}
+    ht_bmi_logistic_model <-
+      glm(ht ~ BMI, 'binomial', bloodpressure)
+    summary(ht_bmi_logistic_model)
+    ```
+    
     - Was there evidence of an effect?
+    
+    > The p-value for BMI was 3.14e-09. So yes.
+    
     - How do you interpret the resulting odds ratio?
+    
+    > The odds ratio is `r exp(ht_bmi_logistic_model$coefficients['BMI']) |> round(3)`. I assume that this is the odds ratio for a change of one unit of BMI.
+    
     - Report the relevant results (including effects measures with CI).
+    
+    ```{r ht-bmi-coefficients, message=FALSE}
+    cbind(
+      coefficients = coef(ht_bmi_logistic_model),
+        exp(
+          cbind(
+            odds_ratio = coef(ht_bmi_logistic_model),
+            confint(ht_bmi_logistic_model)
+          )
+        )
+      ) |>
+      kbl()
+    ```
 
 5. Create a new variable, BMI_4, that categorizes BMI into the following four categories (see Hints):
 
@@ -327,8 +371,65 @@ tibble(
   kbl()
 ```
 
+```{r}
+recoded_bmi <-
+  bloodpressure |>
+  mutate(
+    BMI_4 = case_when(
+      BMI < 18.5 ~ '<18.5',
+      BMI >= 18.5 & BMI < 25 ~ '≥18.5 but <25',
+      BMI >= 25 & BMI < 30 ~ '≥25 but <30',
+      BMI >= 30 ~ '≥30'
+    ) |>
+      ordered(),
+    BMI_4_code = case_when(
+      BMI < 18.5 ~ 1,
+      BMI >= 18.5 & BMI < 25 ~ 2,
+      BMI >= 25 & BMI < 30 ~ 3,
+      BMI >= 30 ~ 4
+    ) |>
+      ordered(),
+    BMI_4_label = case_when(
+      BMI < 18.5 ~ 'Underweight',
+      BMI >= 18.5 & BMI < 25 ~ 'Normal',
+      BMI >= 25 & BMI < 30 ~ 'Overweight',
+      BMI >= 30 ~ 'Extreme overweight'
+    ) |>
+      ordered(
+        levels = c(
+          'Underweight',
+          'Normal',
+          'Overweight',
+          'Extreme overweight'
+        )
+      )
+  )
+```
+
 6. Fit a logistic regression model with ht as dependent variable and the new ordered categorical BMI-variable (BMI_4) as a factor on 4 levels (3 degrees of freedom; 3 OR:s will be estimated relative to a reference category).
+
+    ```{r binned-ht-bmi-logistic-model}
+    binned_ht_bmi_logistic_model <-
+      glm(ht ~ BMI_4, 'binomial', recoded_bmi)
+    summary(binned_ht_bmi_logistic_model)
+    ```
+
     - Reflect on the choice of reference category and interpret the estimated odds ratios.
+
+    ```{r binned-ht-bmi-coefficients, message=FALSE}
+    cbind(
+      coefficients = coef(binned_ht_bmi_logistic_model),
+        exp(
+          cbind(
+            odds_ratio = coef(binned_ht_bmi_logistic_model),
+            confint(binned_ht_bmi_logistic_model)
+          )
+        )
+      ) |>
+      kbl()
+    ```
+    
+    > It seems to be comparing catgories to underweight.
 
 7. It is suboptimal to use a very small category as reference category. An alternative is to use e.g. normal weight as reference category. This is straightforward in R and STATA, and also in SPSS - if you use syntax. (See Hints!)
     - Perform a logistic regression analysis with ht as dependent variable and the new ordered categorical BMI-variable (BMI_4) as a factor on 4 levels with normal weight as the reference category (3 degrees of freedom; 3 OR:s will be estimated relative to the reference category).
