@@ -122,7 +122,7 @@ The first interest of the researchers is the relation between BMI and SBP.
 
   - Write down the linear equation and interpret the model.
     
-  > $y(x)=`r sbp_bmi_linear_model$coefficients['BMI']`x+`r sbp_bmi_linear_model$coefficients['(Intercept)']`$
+  > $y(x)=`r sbp_bmi_linear_model$coefficients['(Intercept)']`+`r sbp_bmi_linear_model$coefficients['BMI']`x$
     
   - Illustrate the data in a scatterplot of SBP vs BMI with the fitted regression line superposed. Does SBP have a linear dependency with BMI? How much of SBP-variation can be explained by BMI?
 
@@ -172,27 +172,91 @@ Although not of primary interest in the original study, we will for pedagogic re
       group_by(smoker) |>
       summarize(
         sbp_min = min(SBP),
+        sbp_q1 = quantile(SBP, .25),
         sbp_mean = mean(SBP),
         sbp_median = median(SBP),
+        sbp_q3 = quantile(SBP, .75),
         sbp_max = max(SBP),
-        sbp_sd = sd(SBP)
+        sbp_sd = sd(SBP),
+        sbp_var = var(SBP)
       ) |>
       kbl()
     ```
 
+    ```{r histogram-sbp-smoking, message=FALSE}
+    bloodpressure |>
+      mutate(smoker = as.factor(smoker)) |>
+      ggplot(aes(x=SBP, fill=smoker)) +
+      geom_histogram(alpha=.5) +
+      labs(
+        title = 'Histogram of systolic blood pressure smoking',
+        x = 'Systolic Blood Pressure (mmHg)',
+        y = 'Number of individuals'
+      )
+    ```
+
 7. Reflect on test strategies. Use your knowledge from previous courses and name at least 2 different ways to test if there is a non-random difference between the systolic blood pressure of smokers and non-smokers.
     - Perform these analyses and interpret the results
+    
+    ```{r sbp-smoking-welch-test}
+    t.test(SBP ~ smoker, bloodpressure)
+    ```
+
+    ```{r sbp-smoking-students-test}
+    t.test(SBP ~ smoker, bloodpressure, var.equal=TRUE)
+    ```
+
+    > There appears to be a difference in mean blood pressure between the smoking and non-smoking groups.
 
 8. Now use linear regression with smoking as explanatory variable:
+
+    ```{r sbp-smoking-linear-model}
+    sbp_smoking_linear_model <- lm(SBP ~ smoker, bloodpressure)
+    summary(sbp_smoking_linear_model)
+    ```
+    
     - What is the estimated effect of smoking on SBP?
+    
+    > The systolic bloodpressure increases approximately `r sbp_smoking_linear_model$coefficients['smokerTRUE'] |> round(0)` mmHg with smoking.
+    
     - What is the interpretation of the other estimated model parameters?
+    
+    > The systolic bloodpressure is approximately `r sbp_smoking_linear_model$coefficients['(Intercept)'] |> round(0)` mmHg for non-smokers.
 
 9. Compare the results of the tests from point 7 and 8.
     - Do you get the same conclusion from all tests?
+    
+    > Yes, they give similar results.
+    
     - Reflect on the model assumptions for the different tests and if they are fulfilled?
-    - Which result would you prefer to present?
+    
+    > #### Welch Two Sample t-test
+    > - Independence of observations: Yes, every subject is either a smoker or a non-smoker.
+    > - No significant outliers: No, there are some outliers.
+    > - Normality: Maybe, the data is close to normally distributed.
+    
+    > #### Student’s Two Sample t-test
+    > - Independence of observations: Yes, every subject is either a smoker or a non-smoker.
+    > - Continuous data: Yes, systolic blood pressure is continuous.
+    > - Random sampling: Maybe, this is hard to determine from just looking at the data.
+    > - Variance homogeniety between groups: No, the variance is larger in the smoker group (`r bloodpressure |> filter(smoker) |> pull(SBP) |> var() |> round()` vs `r bloodpressure |> filter(!smoker) |> pull(SBP) |> var() |> round()`).
+    > - Normality: Maybe, the data is close to normally distributed.
 
-### Logistic regressioin with a binary exposure
+    > #### Linear regression
+    > - Normally distributed errors: No, not really, see Q-Q plot below.
+    > - Errors with constant variance $\sigma^2$ for all X, i.e. $e \in N(0, \sigma^2)$: Yes, see Residuals vs Fitted plot below.
+    > - Independent errors: Hard to say with just two groups?
+    > - No variability in X (fixed): Yes.
+    
+    ```{r sbp-smoking-linear-model-plot}
+    plot(sbp_smoking_linear_model)
+    ```
+    
+    - Which result would you prefer to present?
+    
+    > Probably the Welch Two Sample t-test, possibly with the outliers removed or with a transformed scale.
+
+### Logistic regression with a binary exposure
 
 1. Start by investigating if hypertension is equally common among males and females in the population from which this sample was drawn. To do this:
     - Make a crosstable for ht vs sex, with the most relevant percentages included.
