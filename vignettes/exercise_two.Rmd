@@ -466,8 +466,32 @@ recoded_bmi <-
 
 1. As you discussed during Day 1, one should always be aware of the possibility that differences in an observational study could be affected by confounding. To better understand the data, and as a first step to investigate possible confounding, present descriptive statistics for the background variables (eg. BMI and age), separated for smoking.
 
+```{r bmi}
+bloodpressure |>
+  ggplot(aes(x=BMI, y=smoker)) +
+    geom_boxplot() +
+    labs(
+      title = 'Body Mass Index by Smoking Status',
+      x = 'Body Mass Index (kg/m^2)',
+      y = 'Smoking'
+    )
+```
+
+```{r age}
+bloodpressure |>
+  ggplot(aes(x=age, y=smoker)) +
+    geom_boxplot() +
+    labs(
+      title = 'Age by Smoking Status',
+      x = 'Age (Years)',
+      y = 'Smoking'
+    )
+```
+
 Comment on the differences/similarities between smokers and non-smokers for these
 variables.
+
+> BMI seems to vary more between smoking and non-smoking groups.
 
 Note that confounding is often investigated and handled using regression methods, as you will
 learn later on in the course.
@@ -478,13 +502,46 @@ Go back to the investigation of BMI on SBP
 
 2. In the model validation after the linear regression assessing the effect of BMI on SBP you probably found that residuals were skewed to the right, i.e. have too many large values compared to the normal distribution. A possible remedy is to investigate SBP on a log-scale. To do this create a new variable (logSBP) by logging SBP.
 
+```{r sbp-log-transform}
+bloodpressure_log_sbp <-
+  bloodpressure |>
+  mutate(logSBP = log(SBP))
+```
+
 3. Perform a linear regression with logSBP as dependent and BMI as independent.
+
+```{r log-sbp-model}
+log_sbp_model <-
+  bloodpressure_log_sbp |>
+  (\(x) lm(BMI ~ logSBP, x))()
+```
 
 4. Write down the model equation and interpret the estimated parameters.
 
+```{r}
+summary(log_sbp_model)
+```
+
+> $y(x)=`r log_sbp_model$coefficients['(Intercept)']`+`r log_sbp_model$coefficients['logSBP']`x$ where y is BMI and x is log(SBP). At BMI = 0 the blood pressure is (in theory) negative 22 and increases by 10 by every log(mmHg) blood pressure increase.
+
 5. Plot logSBP vs BMI and add the fitted regression line. Also perform a graphical model validation, to see if the assumptions of the linear regression model are fulfilled.
 
+```{r plot-log-sbp-model, message=FALSE, warning=FALSE}
+ggplot(log_sbp_model$model, aes_string(x=names(log_sbp_model$model)[2], y=names(log_sbp_model$model)[1])) +
+  geom_point() +
+  stat_smooth(method = 'lm', se = FALSE) +
+  labs(
+    title = 'Body Mass Index by Systolic Blood Presure',
+    x = 'Body Mass Index (kg/m^2)',
+    y = 'Systolic Blood Pressure (log(mmHg))'
+  )
+
+plot(log_sbp_model)
+```
+
 6. Which results would you report if you were publishing results on the effect of BMI on SBP?
+
+> The log-transformed.
 
 7. **At the end of the lab:**
 
