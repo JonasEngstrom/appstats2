@@ -13,7 +13,10 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.width = 8.9,
+  fig.height = 5,
+  out.width = "100%"
 )
 ```
 
@@ -37,69 +40,310 @@ Be careful to save all useful commands in a *well-commented syntax file* (meanin
 
 1. ***Use the program-specific hints*** for opening your software, creating a ***new syntax file*** and reading the blood-pressure data. The next step is to get acquainted to the data by browsing, plotting, summarizing or tabulating some of the variables.
 
+> The data is loaded in this document using the command `library(appstats2)` in the code chunk above. For the sourcecode importing the data from the provided Excel file and formatting it as a tibble, please see the file [`bloodpressure.R`](https://github.com/JonasEngstrom/appstats2/blob/main/data-raw/bloodpressure.R).
+
 ### Plot the data
 
 2. Our first focus will be on Systolic blood pressure (SBP), so start by plotting SBP vs sex, SBP vs BMI and SBP vs smoking. Inspect each of the graphs and describe
+
+    ```{r plot-sbp-bmi}
+    bloodpressure |>
+      ggplot(aes(x=SBP, y=BMI)) +
+      geom_point() +
+      labs(
+        title = 'Systolic blood pressure vs body mass index',
+        x = 'Systolic Blood Pressure (mmHg)',
+        y = 'Body Mass Index (kg/m^2)'
+      )
+    ```
+
+    ```{r plot-sbp-sex}
+    bloodpressure |>
+      mutate(sex = as.factor(sex)) |>
+      ggplot(aes(x=SBP, y=sex, color=sex)) +
+      geom_boxplot(color = 'black') +
+      geom_jitter(height = .25, alpha = .5) +
+      labs(
+        title = 'Systolic blood pressure vs sex',
+        x = 'Systolic Blood Pressure (mmHg)',
+        y = 'Sex'
+      ) +
+      theme(
+        legend.position = 'none'
+      )
+    ```
+
+    ```{r plot-sbp-smoking}
+    bloodpressure |>
+      mutate(smoker = as.factor(smoker)) |>
+      ggplot(aes(x=SBP, y=smoker, color=smoker)) +
+      geom_boxplot(color = 'black') +
+      geom_jitter(height = .25, alpha = .5) +
+      labs(
+        title = 'Systolic blood pressure vs smoking',
+        x = 'Systolic Blood Pressure (mmHg)',
+        y = 'Smoker'
+      ) +
+      theme(
+        legend.position = 'none'
+      )
+    ```
+    
     - how SBP varies with sex, smoking and BMI respectively?
+    
+    > SBP seems to be higher with higher BMI and possibly with smoking. With sex number 2 there seems to be a larger range of SBP values.
+    
     - if there are potential outliers in the data?
+    
+    > Yes, there are.
 
 3. Calculate and compare the Pearson and Spearman correlation of SBP and BMI.
+
+    ```{r pearson}
+    cor.test(bloodpressure |> pull(SBP), bloodpressure |> pull(BMI), method = 'pearson')
+    ```
+
+    ```{r spearman}
+    cor.test(bloodpressure |> pull(SBP), bloodpressure |> pull(BMI), method = 'spearman', exact = FALSE)
+    ```
+
+> The Spearman coefficient is slightly higher than the Pearson coefficient.
 
 ### Linear regression
 
 The first interest of the researchers is the relation between BMI and SBP.
 
 4. Then fit a linear regression model with SBP as response and BMI as explanatory variable.
-    - Write down the linear equation and interpret the model.
-    - Illustrate the data in a scatterplot of SBP vs BMI with the fitted regression line superposed. Does SBP have a linear dependency with BMI? How much of SBP-variation can be explained by BMI?
-    - How would you present the results from the regression analysis?
+
+    ```{r sbp-bmi-linear-model}
+    sbp_bmi_linear_model <-
+      lm(SBP ~ BMI, bloodpressure)
+    ```
+
+  - Write down the linear equation and interpret the model.
+    
+  > $y(x)=`r sbp_bmi_linear_model$coefficients['(Intercept)']`+`r sbp_bmi_linear_model$coefficients['BMI']`x$
+    
+  - Illustrate the data in a scatterplot of SBP vs BMI with the fitted regression line superposed. Does SBP have a linear dependency with BMI? How much of SBP-variation can be explained by BMI?
+
+    ```{r plot-sbp-bmi-linear-model}
+    bloodpressure |>
+      ggplot(aes(x=SBP, y=BMI)) +
+      geom_point() +
+      labs(
+        title = 'Systolic blood pressure vs body mass index',
+        x = 'Systolic Blood Pressure (mmHg)',
+        y = 'Body Mass Index (kg/m^2)'
+      ) +
+      geom_smooth(
+        method = 'lm',
+        se = FALSE
+      )
+    ```
+
+  - How would you present the results from the regression analysis?
+  
+  > There seems to be a correleation between body mass index and systolic blood pressure.
 
 Testing model assumptions for the linear regression model:
 
 5. The linear regression model is based on certain assumptions, and only if they are fulfilled should you trust the results of the model.
     - Assess if residuals are normal and have constant variance in the model you just fitted.  
+    
+    ```{r sbp-bmi-linear-model-residuals}
+    summary(sbp_bmi_linear_model)
+    ```
+
+    ```{r sbp-bmi-linear-model-residuals-plot}
+    plot(sbp_bmi_linear_model)
+    ```
+
     (\* If time permits you will later return to the data and perform transformations to see if that can make the data suit even better with the linear regression model).
 
 ### Linear regression with a factor on two levels and other two-group comparisons:
 
-Although not of primary interest in the original study, we will for pedagogic reasons study if
-there is a non-random difference between the systolic blood pressure of smokers and non-
-smokers.
+Although not of primary interest in the original study, we will for pedagogic reasons study if there is a non-random difference between the systolic blood pressure of smokers and non-smokers.
 
 6. Before discussing test-strategies, have a brief look at the data.
     - Make a table with relevant summary statistics (e.g. mean, sd, median, quartiles, min, max) for SBP for smokers and non-smokers separately
+    
+    ```{r sbp-smoking-summary-table}
+    bloodpressure |>
+      group_by(smoker) |>
+      summarize(
+        sbp_min = min(SBP),
+        sbp_q1 = quantile(SBP, .25),
+        sbp_mean = mean(SBP),
+        sbp_median = median(SBP),
+        sbp_q3 = quantile(SBP, .75),
+        sbp_max = max(SBP),
+        sbp_sd = sd(SBP),
+        sbp_var = var(SBP)
+      ) |>
+      kbl()
+    ```
+
+    ```{r histogram-sbp-smoking, message=FALSE}
+    bloodpressure |>
+      mutate(smoker = as.factor(smoker)) |>
+      ggplot(aes(x=SBP, fill=smoker)) +
+      geom_histogram(alpha=.5) +
+      labs(
+        title = 'Histogram of systolic blood pressure smoking',
+        x = 'Systolic Blood Pressure (mmHg)',
+        y = 'Number of individuals'
+      )
+    ```
 
 7. Reflect on test strategies. Use your knowledge from previous courses and name at least 2 different ways to test if there is a non-random difference between the systolic blood pressure of smokers and non-smokers.
     - Perform these analyses and interpret the results
+    
+    ```{r sbp-smoking-welch-test}
+    t.test(SBP ~ smoker, bloodpressure)
+    ```
+
+    ```{r sbp-smoking-students-test}
+    t.test(SBP ~ smoker, bloodpressure, var.equal=TRUE)
+    ```
+
+    > There appears to be a difference in mean blood pressure between the smoking and non-smoking groups.
 
 8. Now use linear regression with smoking as explanatory variable:
+
+    ```{r sbp-smoking-linear-model}
+    sbp_smoking_linear_model <- lm(SBP ~ smoker, bloodpressure)
+    summary(sbp_smoking_linear_model)
+    ```
+    
     - What is the estimated effect of smoking on SBP?
+    
+    > The systolic bloodpressure increases approximately `r sbp_smoking_linear_model$coefficients['smokerTRUE'] |> round(0)` mmHg with smoking.
+    
     - What is the interpretation of the other estimated model parameters?
+    
+    > The systolic bloodpressure is approximately `r sbp_smoking_linear_model$coefficients['(Intercept)'] |> round(0)` mmHg for non-smokers.
 
 9. Compare the results of the tests from point 7 and 8.
     - Do you get the same conclusion from all tests?
+    
+    > Yes, they give similar results.
+    
     - Reflect on the model assumptions for the different tests and if they are fulfilled?
-    - Which result would you prefer to present?
+    
+    > #### Welch Two Sample t-test
+    > - Independence of observations: Yes, every subject is either a smoker or a non-smoker.
+    > - No significant outliers: No, there are some outliers.
+    > - Normality: Maybe, the data is close to normally distributed.
+    
+    > #### Student’s Two Sample t-test
+    > - Independence of observations: Yes, every subject is either a smoker or a non-smoker.
+    > - Continuous data: Yes, systolic blood pressure is continuous.
+    > - Random sampling: Maybe, this is hard to determine from just looking at the data.
+    > - Variance homogeniety between groups: No, the variance is larger in the smoker group (`r bloodpressure |> filter(smoker) |> pull(SBP) |> var() |> round()` vs `r bloodpressure |> filter(!smoker) |> pull(SBP) |> var() |> round()`).
+    > - Normality: Maybe, the data is close to normally distributed.
 
-### Logistic regressioin with a binary exposure
+    > #### Linear regression
+    > - Normally distributed errors: No, not really, see Q-Q plot below.
+    > - Errors with constant variance $\sigma^2$ for all X, i.e. $e \in N(0, \sigma^2)$: Yes, see Residuals vs Fitted plot below.
+    > - Independent errors: Hard to say with just two groups?
+    > - No variability in X (fixed): Yes.
+    
+    ```{r sbp-smoking-linear-model-plot}
+    plot(sbp_smoking_linear_model)
+    ```
+    
+    - Which result would you prefer to present?
+    
+    > Probably the Welch Two Sample t-test, possibly with the outliers removed or with a transformed scale.
+
+### Logistic regression with a binary exposure
 
 1. Start by investigating if hypertension is equally common among males and females in the population from which this sample was drawn. To do this:
     - Make a crosstable for ht vs sex, with the most relevant percentages included.
+    
+    ```{r ht-sex-crosstable, message=FALSE}
+    bloodpressure |>
+      group_by(sex, ht) |>
+      summarize(n = n()) |>
+      mutate(percentage = n / sum(n) * 100) |>
+      pivot_wider(names_from = ht, values_from = c(n, percentage)) |>
+      select(
+        Sex = sex,
+        `Non Hypertension` = n_FALSE,
+        `Hypertension` = n_TRUE,
+        `Percentage with Hypertension` = percentage_TRUE
+      ) |>
+      kbl()
+    ```
+    
     - Calculate by hand the relative risk of ht for men compared to women.
+    
+    > $\frac{45.3}{38.2}\approx1.19$
+    
     - Calculate by hand the corresponding odds ratio (OR)
+    
+    > $\frac{\frac{86}{95}}{\frac{104}{154}}\approx1.34$
 
 2. Now, fit a logistic regression model to investigate the effect of (male) sex on outcome ht.
+    
+    ```{r ht_sex_logistic_model}
+    ht_sex_logistic_model <-
+      glm(ht ~ sex, 'binomial', bloodpressure)
+    summary(ht_sex_logistic_model)
+    ```
+    
     - Compare with the results you calculated by hand.
+    
+    > The odds ratio for male sex in the logistic regression model is $10^{0.2930}\approx1.96$.
     - Is there evidence of an effect of sex on ht?
+    
+    > The p-value for sex in the logstic regression model i 0.13. So no.
 
 ### Logistic regression with a linear exposure
 
 3. The next step is to investigate if BMI is related to ht. Start by looking at data; simplest (but slightly backward) in a boxplot of BMI separated for ht-status.
 
+```{r ht-bmi-boxplot}
+bloodpressure |>
+  ggplot(aes(x = BMI, y = ht)) +
+    geom_boxplot() +
+    labs(
+      title = 'Body Mass Index by Hypertension Status',
+      x = 'Body Mass Index (kg/m^2)',
+      y = 'Hypertension'
+    )
+```
+
 4. Now fit a logistic regression model for the effect of BMI (as a linear covariate) on ht.
+
+    ```{r ht-bmi-logistic-model}
+    ht_bmi_logistic_model <-
+      glm(ht ~ BMI, 'binomial', bloodpressure)
+    summary(ht_bmi_logistic_model)
+    ```
+    
     - Was there evidence of an effect?
+    
+    > The p-value for BMI was 3.14e-09. So yes.
+    
     - How do you interpret the resulting odds ratio?
+    
+    > The odds ratio is `r exp(ht_bmi_logistic_model$coefficients['BMI']) |> round(3)`. I assume that this is the odds ratio for a change of one unit of BMI.
+    
     - Report the relevant results (including effects measures with CI).
+    
+    ```{r ht-bmi-coefficients, message=FALSE}
+    cbind(
+      coefficients = coef(ht_bmi_logistic_model),
+        exp(
+          cbind(
+            odds_ratio = coef(ht_bmi_logistic_model),
+            confint(ht_bmi_logistic_model)
+          )
+        )
+      ) |>
+      kbl()
+    ```
 
 5. Create a new variable, BMI_4, that categorizes BMI into the following four categories (see Hints):
 
@@ -127,19 +371,127 @@ tibble(
   kbl()
 ```
 
+```{r}
+recoded_bmi <-
+  bloodpressure |>
+  mutate(
+    BMI_4 = case_when(
+      BMI < 18.5 ~ '<18.5',
+      BMI >= 18.5 & BMI < 25 ~ '≥18.5 but <25',
+      BMI >= 25 & BMI < 30 ~ '≥25 but <30',
+      BMI >= 30 ~ '≥30'
+    ) |>
+      ordered(),
+    BMI_4_code = case_when(
+      BMI < 18.5 ~ 1,
+      BMI >= 18.5 & BMI < 25 ~ 2,
+      BMI >= 25 & BMI < 30 ~ 3,
+      BMI >= 30 ~ 4
+    ) |>
+      ordered(),
+    BMI_4_label = case_when(
+      BMI < 18.5 ~ 'Underweight',
+      BMI >= 18.5 & BMI < 25 ~ 'Normal',
+      BMI >= 25 & BMI < 30 ~ 'Overweight',
+      BMI >= 30 ~ 'Extreme overweight'
+    ) |>
+      ordered(
+        levels = c(
+          'Underweight',
+          'Normal',
+          'Overweight',
+          'Extreme overweight'
+        )
+      )
+  )
+```
+
 6. Fit a logistic regression model with ht as dependent variable and the new ordered categorical BMI-variable (BMI_4) as a factor on 4 levels (3 degrees of freedom; 3 OR:s will be estimated relative to a reference category).
+
+    ```{r binned-ht-bmi-logistic-model}
+    binned_ht_bmi_logistic_model <-
+      glm(ht ~ BMI_4_label |> factor(ordered=FALSE), 'binomial', recoded_bmi)
+    summary(binned_ht_bmi_logistic_model)
+    ```
+
     - Reflect on the choice of reference category and interpret the estimated odds ratios.
 
+    ```{r binned-ht-bmi-coefficients, message=FALSE}
+    cbind(
+      coefficients = coef(binned_ht_bmi_logistic_model),
+        exp(
+          cbind(
+            odds_ratio = coef(binned_ht_bmi_logistic_model),
+            confint(binned_ht_bmi_logistic_model)
+          )
+        )
+      ) |>
+      kbl()
+    ```
+    
+    > It seems to be comparing catgories to underweight.
+
 7. It is suboptimal to use a very small category as reference category. An alternative is to use e.g. normal weight as reference category. This is straightforward in R and STATA, and also in SPSS - if you use syntax. (See Hints!)
+
+    ```{r recode-bmi-again}
+    recoded_bmi <-
+      recoded_bmi |>
+      mutate(BMI_4_norm = BMI_4_label |> factor(ordered = FALSE) |> relevel(ref='Normal'))
+    ```
+
     - Perform a logistic regression analysis with ht as dependent variable and the new ordered categorical BMI-variable (BMI_4) as a factor on 4 levels with normal weight as the reference category (3 degrees of freedom; 3 OR:s will be estimated relative to the reference category).
+    
+    ```{r recoded-bmi-model}
+    recoded_ht_bmi_logistic_model <-
+      glm(ht ~ BMI_4_norm, 'binomial', recoded_bmi)
+    summary(recoded_ht_bmi_logistic_model)
+    ```
+    
     - Interpret the result and compare effect sizes, confidence intervals and p-values to the previous results.
+    
+    ```{r recoded-ht-bmi-coefficients, message=FALSE}
+    cbind(
+      coefficients = coef(recoded_ht_bmi_logistic_model),
+        exp(
+          cbind(
+            odds_ratio = coef(recoded_ht_bmi_logistic_model),
+            confint(recoded_ht_bmi_logistic_model)
+          )
+        )
+      ) |>
+      kbl()
+    ```
 
 ## Extra exercises—linear regression
 
 1. As you discussed during Day 1, one should always be aware of the possibility that differences in an observational study could be affected by confounding. To better understand the data, and as a first step to investigate possible confounding, present descriptive statistics for the background variables (eg. BMI and age), separated for smoking.
 
+```{r bmi}
+bloodpressure |>
+  ggplot(aes(x=BMI, y=smoker)) +
+    geom_boxplot() +
+    labs(
+      title = 'Body Mass Index by Smoking Status',
+      x = 'Body Mass Index (kg/m^2)',
+      y = 'Smoking'
+    )
+```
+
+```{r age}
+bloodpressure |>
+  ggplot(aes(x=age, y=smoker)) +
+    geom_boxplot() +
+    labs(
+      title = 'Age by Smoking Status',
+      x = 'Age (Years)',
+      y = 'Smoking'
+    )
+```
+
 Comment on the differences/similarities between smokers and non-smokers for these
 variables.
+
+> BMI seems to vary more between smoking and non-smoking groups.
 
 Note that confounding is often investigated and handled using regression methods, as you will
 learn later on in the course.
@@ -150,13 +502,46 @@ Go back to the investigation of BMI on SBP
 
 2. In the model validation after the linear regression assessing the effect of BMI on SBP you probably found that residuals were skewed to the right, i.e. have too many large values compared to the normal distribution. A possible remedy is to investigate SBP on a log-scale. To do this create a new variable (logSBP) by logging SBP.
 
+```{r sbp-log-transform}
+bloodpressure_log_sbp <-
+  bloodpressure |>
+  mutate(logSBP = log(SBP))
+```
+
 3. Perform a linear regression with logSBP as dependent and BMI as independent.
+
+```{r log-sbp-model}
+log_sbp_model <-
+  bloodpressure_log_sbp |>
+  (\(x) lm(BMI ~ logSBP, x))()
+```
 
 4. Write down the model equation and interpret the estimated parameters.
 
+```{r}
+summary(log_sbp_model)
+```
+
+> $y(x)=`r log_sbp_model$coefficients['(Intercept)']`+`r log_sbp_model$coefficients['logSBP']`x$ where y is BMI and x is log(SBP). At BMI = 0 the blood pressure is (in theory) negative 22 and increases by 10 by every log(mmHg) blood pressure increase.
+
 5. Plot logSBP vs BMI and add the fitted regression line. Also perform a graphical model validation, to see if the assumptions of the linear regression model are fulfilled.
 
+```{r plot-log-sbp-model, message=FALSE, warning=FALSE}
+ggplot(log_sbp_model$model, aes_string(x=names(log_sbp_model$model)[2], y=names(log_sbp_model$model)[1])) +
+  geom_point() +
+  stat_smooth(method = 'lm', se = FALSE) +
+  labs(
+    title = 'Body Mass Index by Systolic Blood Presure',
+    x = 'Body Mass Index (kg/m^2)',
+    y = 'Systolic Blood Pressure (log(mmHg))'
+  )
+
+plot(log_sbp_model)
+```
+
 6. Which results would you report if you were publishing results on the effect of BMI on SBP?
+
+> The log-transformed.
 
 7. **At the end of the lab:**
 

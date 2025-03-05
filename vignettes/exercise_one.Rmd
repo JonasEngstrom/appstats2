@@ -83,11 +83,10 @@ Read the data into your statistics package (see the program-specific hints).
       
       # Format crosstable for nicer output.
       rename(' ' = ht) |>
-      kbl() |>
-      kable_classic()
+      kbl()
     ```
     
-    > Both row and column percentages could be informative, depending on whether one is interested in what proportion of smokers have hypertension or what proportion of people with hypertension smoke.
+    > Both row and column percentages could be informative, depending on whether one is interested in what proportion of smokers have hypertension or what proportion of people with hypertension smoke. (Comment: Percentages within the exposure groups is probably most interesting, as you would want to know what proportion of unexposed individuals (non-smokers) that have hypertension compared to the exposed group (smokers).)
 
     b) Conduct a statistical test of whether hypertension is equally common in smokers and non-smokers.
     
@@ -144,8 +143,7 @@ Read the data into your statistics package (see the program-specific hints).
       
       # Format table for nicer output.
       select(' ' = ht, 'Incidence of CHD events per 1,000 follow-up years' = incidence_per_1000_years) |>
-      kbl() |>
-      kable_classic()
+      kbl()
     ```
 
 We will return to the blood pressure dataset many times during this course, but not during this exercise, so save the syntax/script and close the dataset. If you have followed the instructions above, you do not have to save the dataset; it has not been modified.
@@ -169,7 +167,7 @@ Read the dataset **Feldkamp** from file. We suggest that you use separate syntax
 
 3. Analyze the data. Are row or column percentages, or both, relevant? Calculate an appropriate effect measure.
 
-> Both would be relevant if we want to know the exposure to infection as well as the incidence of gastroschisis.
+> Both would be relevant if we want to know the exposure to infection as well as the incidence of gastroschisis. (Comment: Looking at the poportion of infections in the case vs the control group is probably the most interesting thing to look at.)
 
 ```{r odds-ratio-function-definition}
 #' Odds Ratio
@@ -224,11 +222,11 @@ feldkamp |>
 
 4. Confounding (lack of comparability between cases and controls) is always an issue in observational studies. What type of information could be relevant to include in the analysis (if collected)?
 
-> Age, comorbiditiesd, drug/alchool/nicotine use, genetic disorders in close family members, external events during pregnancy (e.g. increased dioxin levels in the environment, Chernobyl etc.) among other things.
+> Age, comorbidities, drug/alchool/nicotine use, genetic disorders in close family members, external events during pregnancy (e.g. increased dioxin levels in the environment, Chernobyl etc.) among other things. (Comment: Smoking, alcohol use, maternal age, and common over-the-counter medications might affect the risk of gastroschisis.)
 
 5. Why do you think they designed the study as a case-control study and not a cohort study?
 
-> Pregnancy may not occur at the same time in all case-control pairs. Gastroschisis is also a farily uncommon condition.
+> Gastroschisis is an uncommon condition.
 
 6. What is the prevalence of the disease (Google search)?
 
