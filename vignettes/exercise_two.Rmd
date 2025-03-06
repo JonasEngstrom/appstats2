@@ -48,12 +48,12 @@ Be careful to save all useful commands in a *well-commented syntax file* (meanin
 
     ```{r plot-sbp-bmi}
     bloodpressure |>
-      ggplot(aes(x=SBP, y=BMI)) +
+      ggplot(aes(y=SBP, x=BMI)) +
       geom_point() +
       labs(
         title = 'Systolic blood pressure vs body mass index',
-        x = 'Systolic Blood Pressure (mmHg)',
-        y = 'Body Mass Index (kg/m^2)'
+        y = 'Systolic Blood Pressure (mmHg)',
+        x = bquote('Body Mass Index'~(kg/m^2))
       )
     ```
 
@@ -128,12 +128,12 @@ The first interest of the researchers is the relation between BMI and SBP.
 
     ```{r plot-sbp-bmi-linear-model}
     bloodpressure |>
-      ggplot(aes(x=SBP, y=BMI)) +
+      ggplot(aes(y=SBP, x=BMI)) +
       geom_point() +
       labs(
         title = 'Systolic blood pressure vs body mass index',
-        x = 'Systolic Blood Pressure (mmHg)',
-        y = 'Body Mass Index (kg/m^2)'
+        y = 'Systolic Blood Pressure (mmHg)',
+        x = bquote('Body Mass Index'~(kg/m^2))
       ) +
       geom_smooth(
         method = 'lm',
@@ -189,14 +189,18 @@ Although not of primary interest in the original study, we will for pedagogic re
       ggplot(aes(x=SBP, fill=smoker)) +
       geom_histogram(alpha=.5) +
       labs(
-        title = 'Histogram of systolic blood pressure smoking',
+        title = 'Histogram of Systolic Blood Pressure by Smoking',
         x = 'Systolic Blood Pressure (mmHg)',
-        y = 'Number of individuals'
+        y = 'Number of Individuals'
       )
     ```
 
 7. Reflect on test strategies. Use your knowledge from previous courses and name at least 2 different ways to test if there is a non-random difference between the systolic blood pressure of smokers and non-smokers.
     - Perform these analyses and interpret the results
+
+    ```{r sbp-smoking-wilcoxon-test}
+    wilcox.test(SBP ~ smoker, bloodpressure)
+    ```
     
     ```{r sbp-smoking-welch-test}
     t.test(SBP ~ smoker, bloodpressure)
@@ -263,17 +267,9 @@ Although not of primary interest in the original study, we will for pedagogic re
     
     ```{r ht-sex-crosstable, message=FALSE}
     bloodpressure |>
-      group_by(sex, ht) |>
-      summarize(n = n()) |>
-      mutate(percentage = n / sum(n) * 100) |>
-      pivot_wider(names_from = ht, values_from = c(n, percentage)) |>
-      select(
-        Sex = sex,
-        `Non Hypertension` = n_FALSE,
-        `Hypertension` = n_TRUE,
-        `Percentage with Hypertension` = percentage_TRUE
-      ) |>
-      kbl()
+      select(sex, ht) |>
+      table() |>
+      addmargins(FUN = list(list(sum), list(proportion1 = (\(x) x[1]/(x[1] + x[2])), proportion2 = (\(x) x[2]/(x[1] + x[2])))))
     ```
     
     - Calculate by hand the relative risk of ht for men compared to women.
@@ -309,7 +305,7 @@ bloodpressure |>
     geom_boxplot() +
     labs(
       title = 'Body Mass Index by Hypertension Status',
-      x = 'Body Mass Index (kg/m^2)',
+      x = bquote('Body Mass Index'~(kg/m^2)),
       y = 'Hypertension'
     )
 ```
@@ -472,7 +468,7 @@ bloodpressure |>
     geom_boxplot() +
     labs(
       title = 'Body Mass Index by Smoking Status',
-      x = 'Body Mass Index (kg/m^2)',
+      x = bquote('Body Mass Index'~(kg/m^2)),
       y = 'Smoking'
     )
 ```
@@ -532,7 +528,7 @@ ggplot(log_sbp_model$model, aes_string(x=names(log_sbp_model$model)[2], y=names(
   stat_smooth(method = 'lm', se = FALSE) +
   labs(
     title = 'Body Mass Index by Systolic Blood Presure',
-    x = 'Body Mass Index (kg/m^2)',
+    x = bquote('Body Mass Index'~(kg/m^2)),
     y = 'Systolic Blood Pressure (log(mmHg))'
   )
 

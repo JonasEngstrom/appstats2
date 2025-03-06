@@ -176,7 +176,7 @@ ht_binned_bmi_smoking_logistic_model |>
 
 7. Which of the two adjusted models do you prefer, the one with a linear BMI-effect (exercise 3) or the one with BMI as a factor on 4 levels (exercise 6), and why? Pros and cons?
 
-  > While there is something mathematically appealing about having a continuous input variable, to be able to (in theory) more closely approximate the risk for a given individual, the categories perhaps illustrate the perils of extreme overweight more clearly.
+  > While there is something mathematically appealing about having a continuous input variable, to be able to (in theory) more closely approximate the risk for a given individual, the categories perhaps illustrate the perils of extreme overweight more clearly. The categorization also allows for non-linear progression between groups.
 
 ## Multiple linear regression
 
