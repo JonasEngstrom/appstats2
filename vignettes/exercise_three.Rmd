@@ -13,12 +13,17 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.width = 8.9,
+  fig.height = 5,
+  out.width = "100%"
 )
 ```
 
-```{r setup}
+```{r setup, message=FALSE}
 library(appstats2)
+library(tidyverse)
+library(kableExtra)
 ```
 
 The instructions below are copied from [the Lund University website](https://canvas.education.lu.se/courses/34580/files/6061971?module_item_id=1441737).
@@ -35,11 +40,95 @@ In the previous computer exercise, you calculated the crude (=unadjusted) effect
 
 Create a new syntax script for this exercise. As always, the first line(s) of the syntax should read the data from datafile. Open the dataset from the previous lab if you saved it, or re-run the syntax to obtain the categorical BMI variable (on today’s lab we will again use both the continuous BMI variable and the categorical variable BMI_4 that you have created).
 
+> The data is loaded in this document using the command `library(appstats2)` in the code chunk above. For the sourcecode importing the data from the provided Excel file and formatting it as a tibble, please see the file [`bloodpressure.R`](https://github.com/JonasEngstrom/appstats2/blob/main/data-raw/bloodpressure.R).
+
+```{r create-binned-bmi}
+binned_bmi <-
+  bloodpressure |>
+  mutate(
+    BMI_4 = case_when(
+      BMI < 18.5 ~ 'Underweight',
+      BMI >= 18.5 & BMI < 25 ~ 'Normal weight',
+      BMI >= 25 & BMI < 30 ~ 'Overweight',
+      BMI >= 30 ~ 'Extreme overweight'
+    ) |>
+      # ordered(
+      #   levels = c(
+      #     'Underweight',
+      #     'Normal weight',
+      #     'Overweight',
+      #     'Extreme overweight'
+      #   )
+      # )
+      factor() |>
+      relevel('Normal weight')
+  )
+```
+
 1. Is smoking a possible confounder when studying the effect of BMI on hypertension? Argue based on common sense and/or knowledge and not based on the data at hand (no calculations needed; just reason and draw one or several DAGs if needed).
+
+> Yes, since smoking can affect both weight, e.g. in patients with advanced COPD, and blood pressure, through deterioration of vascular health.
 
 2. Fit the simple logistic regression model with ht as the dependent variable and BMI (continuous) as the only explanatory variable. This model was fitted also in the lab on simple logistic regression, but we need it now as a reference model. How do you interpret the results in words?
 
+```{r fit-ht-bmi-logistic-model}
+ht_bmi_logistic_model <-
+  glm(ht ~ BMI, 'binomial', binned_bmi)
+
+summary(ht_bmi_logistic_model)
+```
+
+```{r calculate-odds-ratios-function-definition}
+#' Calculate Odds Ratios
+#' 
+#' Calculate odds ratios for the coefficients of a linear model.
+#'
+#' @param model A fitted linear model.
+#'
+#' @returns A matrix of doubles.
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' calculate_odds_ratios(fitted_linear_model)
+#' }
+calculate_odds_ratios <- function(model) {
+  cbind(
+    coefficients = coef(model),
+      exp(
+        cbind(
+          odds_ratio = coef(model),
+          confint(model)
+        )
+      )
+    )
+}
+```
+
+```{r ht-bmi-logisitc-model-odds-ratios, message=FALSE}
+ht_bmi_logistic_model |>
+  calculate_odds_ratios() |>
+  kbl()
+```
+
+> There seems to be a significant effect of BMI on hypertension.
+
 3. Investigate what happens to the estimated effect of BMI on ht when you extend the simple logistic regression model to also take smoking into account. Interpret the odds ratio for the risk factor of main interest (BMI) and compare with the crude estimate previously obtained. Does confounding appear to be an important issue?
+
+```{r fit-ht-bmi-smoking-logistic-model}
+ht_bmi_smoking_logistic_model <-
+  glm(ht ~ BMI + smoker, 'binomial', binned_bmi)
+
+summary(ht_bmi_smoking_logistic_model)
+```
+
+```{r ht-bmi-smoking-logisitc-model-odds-ratios, message=FALSE}
+ht_bmi_smoking_logistic_model |>
+  calculate_odds_ratios() |>
+  kbl()
+```
+
+> Smoking does appear to be an important factor to consider.
 
 The effect of BMI on the log odds of hypertension is assumed to be linear in the models above. A common way of relaxing this, possibly unrealistic, model assumption is to categorize the explanatory variable and fit a model with the variable as a factor on k levels. One example of non-linearity is *saturation* – i.e., that there are increasing log odds of hypertension up to a specific value of a risk factor, but thereafter a plateau.
 
@@ -47,13 +136,47 @@ The variable BMI_4, created in a previous exercise, has ***k***=4 levels. When m
 
 4. Fit a logistic regression model with ht as the dependent variable and BMI_4 (as a factor) as the only explanatory variable (again as a reference model for the next exercise). Interpret the estimates.
 
+```{r fit-ht-binned-bmi-logistic-model}
+ht_binned_bmi_logistic_model <-
+  glm(ht ~ BMI_4, 'binomial', binned_bmi)
+
+summary(ht_binned_bmi_logistic_model)
+```
+
+> Overweight seems to be significantly associated with hypertension.
+
 Your statistics package will calculate p-values corresponding to each of the three relative BMI-effects on ht, but it is also of interest to evaluate if **the factor BMI** on 4 levels is associated to ht. The null hypothesis of this test is that all three ORs are equal to 1.00 (i.e., the odds of ht is same in all the four groups), whereas the alternative hypothesis is that that at least one OR deviates from 1.00 (not the same odds of ht in the four groups).
 
 5. How strong is the support for the alternative?
 
+```{r ht-binned-bmi-logisitc-model-odds-ratios, message=FALSE}
+ht_binned_bmi_logistic_model |>
+  calculate_odds_ratios() |>
+  kbl()
+```
+
+  > Stronger the higher the weight category.
+
 6. Add smoking to the model above and interpret the three **adjusted** odds ratios for BMI as a factor on 4 levels.
 
+```{r fit-ht-binned-bmi-smoking-logistic-model}
+ht_binned_bmi_smoking_logistic_model <-
+  glm(ht ~ BMI_4 + smoker, 'binomial', binned_bmi)
+
+summary(ht_binned_bmi_smoking_logistic_model)
+```
+
+```{r ht-binned-bmi-smoking-logisitc-model-odds-ratios, message=FALSE}
+ht_binned_bmi_smoking_logistic_model |>
+  calculate_odds_ratios() |>
+  kbl()
+```
+
+  > Smoking and being extremely overweight does not seem to be a very good combination for your blood pressure.
+
 7. Which of the two adjusted models do you prefer, the one with a linear BMI-effect (exercise 3) or the one with BMI as a factor on 4 levels (exercise 6), and why? Pros and cons?
+
+  > While there is something mathematically appealing about having a continuous input variable, to be able to (in theory) more closely approximate the risk for a given individual, the categories perhaps illustrate the perils of extreme overweight more clearly.
 
 ## Multiple linear regression
 
@@ -61,29 +184,126 @@ We now return to another research question that we investigated in the previous 
 
 8. To get started again, plot SBP vs BMI (with an added regression line) and estimate and interpret a simple linear regression model of SBP (dependent) on BMI (independent).
 
+```{r sbp_bmi_plot, message=FALSE}
+binned_bmi |>
+  ggplot(aes(x = BMI, y = SBP)) +
+    geom_point() +
+    geom_smooth(method = 'lm', se = FALSE) +
+    labs(
+      title = 'Systolic Bloos Pressure vs Body Mass Index',
+      x = 'Body Mass Index (kg/m^2)',
+      y = 'Systolic Blodd Pressure (mmHg)'
+    )
+```
+
+```{r sbp_bmi_linear_model, message=FALSE}
+sbp_bmi_linear_model <-
+  lm(SBP ~ BMI, binned_bmi)
+
+summary(sbp_bmi_linear_model)
+```
+
+> Systolic blood pressure seems to increase with increasing body mass index.
+
 9. Now fit the multiple linear regression model with adjustment for smoking: $\text{SBP} = \beta_0 + \beta_1 \times \text{BMI} + \beta_2 \times \text{smoker}$.
+
+```{r sbp_bmi_smoking_linear_model, message=FALSE}
+sbp_bmi_smoking_linear_model <-
+  lm(SBP ~ BMI + smoker, binned_bmi)
+
+summary(sbp_bmi_smoking_linear_model)
+```
 
 10. How much difference for the estimate did the adjustment for smoking make?
 
+  > It decreased the p-value for BMI from 1.07e-13 to < 2e-16.
+
 11. How much did the $\text{R}^2$ increase when adjusting for smoking?
 
+  > The adjusted R-squared increased from 0.1168 to 0.1664.
+
 12. Interpret the estimated slope parameters for BMI in the adjusted model using your own words.
+
+```{r bmi-slope}
+print(sbp_bmi_linear_model$coefficients)
+print(sbp_bmi_smoking_linear_model$coefficients)
+```
+
+  > With every kg/m^2 increase in BMI systolic blood pressure increases by approximately 2 mmHg.
 
 Indeed, smoking is not the only possible confounder when estimating the effect of BMI on blood pressure. Another possible confounder is sex (gender). Note that when including a binary variable such as sex, it is often convenient to code its values as 0 and 1. Hence:
 
 13. Create a variable female, which is 1 for females and 0 for male subjects.
 
+```{r sex-recode}
+binned_bmi <-
+  binned_bmi |>
+  mutate(
+    female = case_match(
+      sex,
+      'Female' ~ 1,
+      'Male' ~ 0
+    )
+  )
+```
+
 14. Fit a model for the effects on BMI on SBP including female as a covariate. Again, examine how much difference it makes whether smoking is included (i.e., try estimating the model both with and without smoking)?  
 Remark: Whether you adjust for the female variable or for the original sex variable does not matter for the conclusions. However, a binary 0/1 variable indicating that an individual belongs to a particular is often more convenient to interpret than 1/2 variable, as it is easy to forget what 1 and 2 stands for in the latter case.
 
+```{r fit-sbp-bmi-female-model}
+sbp_bmi_female_model <-
+  lm(SBP ~ BMI + female, binned_bmi)
+
+summary(sbp_bmi_female_model)
+```
+
+```{r fit-sbp-bmi-female-smoking-model}
+sbp_bmi_female_smoking_model <-
+  lm(SBP ~ BMI + female + smoker, binned_bmi)
+
+summary(sbp_bmi_female_smoking_model)
+```
+
 15. Fit separate simple linear regression models of SBP on BMI for non-smokers and smokers, and compare the slope coefficients. Compare them also to the unadjusted slope for the combined sample of non-smokers and smokers.
+
+```{r separate-bmi-smoking-models}
+binned_bmi |>
+  filter(smoker) |>
+  (\(x) lm(SBP ~ BMI, x))() |>
+  summary()
+
+binned_bmi |>
+  filter(!smoker) |>
+  (\(x) lm(SBP ~ BMI, x))() |>
+  summary()
+
+binned_bmi |>
+  (\(x) lm(SBP ~ BMI, x))() |>
+  summary()
+```
 
 Estimating separate regressions for smokers and non-smokers, as above, is one way of examining interaction between smoking and BMI. Another one is to include a product term between smoking and BMI.
 
 16. Create the product term $\text{BMI} \times \text{smoker}$
 
+```{r product-term-bmi-smoking-model}
+binned_bmi |>
+  (\(x) lm(SBP ~ BMI * smoker, x))() |>
+  summary()
+```
+
 17. Fit a multiple linear regression model for SBP with BMI, smoking, and the product of BMI and smoking as explanatory variables. Compare the result with that obtained in the stratified analysis.
+
+  > See above.
 
 **A larger multivariable model:**
 
 18. Fit a multiple linear regression model for SBP with BMI, female, smoker, and age as explanatory variables and interpret all the estimated parameters.
+
+```{r larger-model}
+binned_bmi |>
+  (\(x) lm(SBP ~ BMI + female + smoker + age, x))() |>
+  summary()
+```
+
+  > Body mass index, smoking, and age seem to influence systolic blood pressure. Female sex does not.

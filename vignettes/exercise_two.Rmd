@@ -371,7 +371,7 @@ tibble(
   kbl()
 ```
 
-```{r}
+```{r bin-bmi}
 recoded_bmi <-
   bloodpressure |>
   mutate(
