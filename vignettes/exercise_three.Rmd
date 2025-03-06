@@ -17,8 +17,10 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
+```{r setup, message=FALSE}
 library(appstats2)
+library(tidyverse)
+library(kableExtra)
 ```
 
 The instructions below are copied from [the Lund University website](https://canvas.education.lu.se/courses/34580/files/6061971?module_item_id=1441737).
@@ -35,17 +37,110 @@ In the previous computer exercise, you calculated the crude (=unadjusted) effect
 
 Create a new syntax script for this exercise. As always, the first line(s) of the syntax should read the data from datafile. Open the dataset from the previous lab if you saved it, or re-run the syntax to obtain the categorical BMI variable (on today’s lab we will again use both the continuous BMI variable and the categorical variable BMI_4 that you have created).
 
+> The data is loaded in this document using the command `library(appstats2)` in the code chunk above. For the sourcecode importing the data from the provided Excel file and formatting it as a tibble, please see the file [`bloodpressure.R`](https://github.com/JonasEngstrom/appstats2/blob/main/data-raw/bloodpressure.R).
+
+```{r create-binned-bmi}
+binned_bmi <-
+  bloodpressure |>
+  mutate(
+    BMI_4 = case_when(
+      BMI < 18.5 ~ 'Underweight',
+      BMI >= 18.5 & BMI < 25 ~ 'Normal weight',
+      BMI >= 25 & BMI < 30 ~ 'Overweight',
+      BMI >= 30 ~ 'Extreme overweight'
+    ) |>
+      # ordered(
+      #   levels = c(
+      #     'Underweight',
+      #     'Normal weight',
+      #     'Overweight',
+      #     'Extreme overweight'
+      #   )
+      # )
+      factor() |>
+      relevel('Normal weight')
+  )
+```
+
 1. Is smoking a possible confounder when studying the effect of BMI on hypertension? Argue based on common sense and/or knowledge and not based on the data at hand (no calculations needed; just reason and draw one or several DAGs if needed).
+
+> Yes, since smoking can affect both weight, e.g. in patients with advanced COPD, and blood pressure, through deterioration of vascular health.
 
 2. Fit the simple logistic regression model with ht as the dependent variable and BMI (continuous) as the only explanatory variable. This model was fitted also in the lab on simple logistic regression, but we need it now as a reference model. How do you interpret the results in words?
 
+```{r fit-ht-bmi-logistic-model}
+ht_bmi_logistic_model <-
+  glm(ht ~ BMI, 'binomial', binned_bmi)
+
+summary(ht_bmi_logistic_model)
+```
+
+```{r calculate-odds-ratios-function-definition}
+#' Calculate Odds Ratios
+#' 
+#' Calculate odds ratios for the coefficients of a linear model.
+#'
+#' @param model A fitted linear model.
+#'
+#' @returns A matrix of doubles.
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' calculate_odds_ratios(fitted_linear_model)
+#' }
+calculate_odds_ratios <- function(model) {
+  cbind(
+    coefficients = coef(model),
+      exp(
+        cbind(
+          odds_ratio = coef(model),
+          confint(model)
+        )
+      )
+    )
+}
+```
+
+```{r ht-bmi-logisitc-model-odds-ratios, message=FALSE}
+ht_bmi_logistic_model |>
+  calculate_odds_ratios() |>
+  kbl()
+```
+
+> There seems to be a significant effect of BMI on hypertension.
+
 3. Investigate what happens to the estimated effect of BMI on ht when you extend the simple logistic regression model to also take smoking into account. Interpret the odds ratio for the risk factor of main interest (BMI) and compare with the crude estimate previously obtained. Does confounding appear to be an important issue?
+
+```{r fit-ht-bmi-smoking-logistic-model}
+ht_bmi_smoking_logistic_model <-
+  glm(ht ~ BMI + smoker, 'binomial', binned_bmi)
+
+summary(ht_bmi_smoking_logistic_model)
+```
+
+```{r ht-bmi-smoking-logisitc-model-odds-ratios, message=FALSE}
+ht_bmi_smoking_logistic_model |>
+  calculate_odds_ratios() |>
+  kbl()
+```
+
+> Smoking does appear to be an important factor to consider.
 
 The effect of BMI on the log odds of hypertension is assumed to be linear in the models above. A common way of relaxing this, possibly unrealistic, model assumption is to categorize the explanatory variable and fit a model with the variable as a factor on k levels. One example of non-linearity is *saturation* – i.e., that there are increasing log odds of hypertension up to a specific value of a risk factor, but thereafter a plateau.
 
 The variable BMI_4, created in a previous exercise, has ***k***=4 levels. When modelled as a factor, ***k***-1=3 effects relative to a **suitably chosen reference category** will be estimated (crude or adjusted). The first or last category is often chosen as the reference if the prevalence is not too low, but for BMI it makes sense to regard normal weight as the reference group.
 
 4. Fit a logistic regression model with ht as the dependent variable and BMI_4 (as a factor) as the only explanatory variable (again as a reference model for the next exercise). Interpret the estimates.
+
+```{r fit-ht-binned-bmi-logistic-model}
+ht_binned_bmi_logistic_model <-
+  glm(ht ~ BMI_4, 'binomial', binned_bmi)
+
+summary(ht_binned_bmi_logistic_model)
+```
+
+> Overweight seems to be significantly associated with hypertension.
 
 Your statistics package will calculate p-values corresponding to each of the three relative BMI-effects on ht, but it is also of interest to evaluate if **the factor BMI** on 4 levels is associated to ht. The null hypothesis of this test is that all three ORs are equal to 1.00 (i.e., the odds of ht is same in all the four groups), whereas the alternative hypothesis is that that at least one OR deviates from 1.00 (not the same odds of ht in the four groups).
 
