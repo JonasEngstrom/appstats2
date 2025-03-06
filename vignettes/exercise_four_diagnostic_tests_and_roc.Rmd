@@ -1,0 +1,75 @@
+---
+title: "exercise_four_diagnostic_tests_and_roc"
+author: "Jonas Engström"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{exercise_four_diagnostic_tests_and_roc}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Exercise Diagnostic Tests and ROC
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(appstats2)
+```
+
+The instructions below are copied from e-mail correspondence regarding the course [Applied Statistics II](https://canvas.education.lu.se/courses/34580) at Lund University.
+
+In this test we will use a data set of markers for outcome prediction following aneurysmal subarachnoid haemorrhage ([Turck N et al: *A multiparameter panel method for outcome prediction following aneurysmal subarachnoid hemorrhage.* **Intensive Care Med 2010**, 36:107-115](https://doi.org/10.1007/s00134-009-1641-y)).
+
+## Data
+
+The outcome in this dataset was **GOS=Glasgow Outcome State**, examined on a 5 grade scale and then dichotomized in variable **outcome** as Poor (GOS ≤ 3) or Good (GOS ≥ 4). The other variables are potential predictors of the outcome:
+
+**WFNS** -- a neurological scale (from World Federation of Neurological Surgeons). 1-5 where 1 is least severity and 5 is worst.  
+**NDKA** -- a biomarker (Nucleoside Diphosphate Kinase A)  
+**S100b** -- a biomarker (calcium-binding protein B – a protein of the S-100 protein family)
+
+**The purpose of the case presented here is to identify patients at risk of *poor* post-aSAH outcome**, as they require specific healthcare management.
+
+R users can load the data directly within R (run: `data(aSAH)` after calling `library(pROC)`), see hints. For STATA and SPSS we have prepared STATA and SPSS-datasets.
+
+## Exercises
+
+0. Open a new syntax-file for this lab
+
+1. Load the aSAH-data and do not forget to include the commands for reading the data in the syntax file.
+
+ROC for a diagnostic test
+
+1. Use summary measures and/or graphs to inspect the data. Focus on variables outcome `wfns` and `s100b` that we will use in the lab.
+
+2. Our main focus is on the ability of WFNS to predict poor post-ASAH outcome. As a first investigation, tabulate outcome separated on WFNS-score.
+    - Is there any association? Positive or negative?
+
+3. Now dichotomize wfns with cut-point=3, i.e create a new variable wfns_3 that is 0 if wfns<=3 and 1 if wfns>3
+
+4. Tabulate wfns_3 versus outcome.
+    - Is Poor outcome more common for patients with low or high wfns in the sample?
+
+5. Calculate (by hand or if you find a good function in your statistical program) the sensitivity and specificity of the dichotomized wfns score (wfns_3).
+    - What is the interpretation of the estimates?
+
+6. Similarly calculate the positive and negative predictive value of the dichotomized wfns score (wfns_3).
+    - Interpret the results.
+
+7. Next – produce a ROC-curve for wfns (using all 5 levels).
+    - Can you identify the cutoff you used above?
+    - Can you identify the other cut-offs in the ROC-curve?
+    - Is wfns predictive for outcome after aSAH?
+
+8. Test the predictive value of s100b.
+    - Is s100b predictive of poor outcome of aSAH?
+    - Is it better or worse than wfns?
+
+At the end of the lab:
+
+9. Close your syntax file (remember to save the last changes).
