@@ -1,0 +1,103 @@
+---
+title: "project_one"
+author: "Jonas Engström"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{project_one}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Project 1
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(appstats2)
+```
+
+The instructions below are copied from [the Lund University website](https://canvas.education.lu.se/courses/34580/files/6061921?module_item_id=1441780).
+
+## Prognostic factors in breast cancer---focus on uPA
+
+### Background and Material
+
+During the first half of the 1990s, 237 women with primary breast cancer, diagnosed in the South Swedish health care region, were included in cohort study. The primary aim was validation of a prognostic index based on tumor size, proliferation, and receptor status and the secondary to identify new biomarkers. Women with other known malignancies before the first breast cancer diagnosis were excluded. Furthermore, the study was restricted to pre-menopausal women with localized disease, i.e., no spread to the axillary lymph nodes. Fresh frozen tumor tissue was sent to the laboratory at the Department of Oncology, Lund, for routine evaluation of tumor characteristics such as proliferation (S-phase fraction) and receptor status (ER and PgR). Small pieces from these tumors have since then been used in numerous biomarker studies and we still have tissue left from most of these tumors in the biobank at Medicon Village, Lund.
+
+The study database currently contains 124 variables and the number of variables is growing as new biomarkers are measured. The dataset you are going to analyze is a random sample of 200 patients and 22 variables from this study. Some of the variables are original and some derived. For example, the variable hist_grade_3_to_9 is the sum of the three variables mitotic_grade, tubular_grade and nuclear_grade. The histological grade of the tumour (hist_grade) is defined by categorization of this sum into three classes: Grade 1 (sum 3 to 5), Grade 2 (sum 6 or 7) and Grade 3 (sum 8 or 9). This variable has also been dichotomized, contrasting Grade 3 to Grade 1+2 (hist3).
+
+Variables in the data file:
+
+|variable name|storage type|display format|value label|variable label|
+|-|-|-|-|-|
+|id|float|%9.0g||Patient ID|
+|age|float|%9.0g||age, years|
+|adjuvant|byte|%9.0g|janej|Adjuvant treatment, hormonal or chemotherapy|
+|ddfs|float|%9.0g||Distant disease-free survival, years|
+|distmet|byte|%9.0g|janej|Distant metastasis?|
+|tumsize|byte|%9.0g||Tumor size, mm|
+|size_gt_20|byte|%9.0g|janej|Tumor size >20 mm?|
+|hist_grade|byte|%4.0g||Histological grade|
+|hist3|byte|%9.0g|janej|Histological grade 3?|
+|mitotic_grade|byte|%4.0g||Mitotic grade|
+|tubular_grade|byte|%4.0g||Tubular grade|
+|nuclear_grade|byte|%4.0g||Nuclear grade|
+|hist_grade_3_~9|byte|%9.0g||Sum of mitotic, tubular and nuclear grade|
+|er_cyt|float|%9.0g||ER, fmol/mg protein cytosol|
+|er_cyt_pos|byte|%9.0g|janej|ER cytosol>=25fmol/mg protein?|
+|pgr_cyt|float|%9.0g||PgR, fmol/mg protein cytosol|
+|pgr_cyt_pos|byte|%9.0g|janej|PgR cytosol>=25fmol/mg protein?|
+|upa|float|%9.0g||uPA, ng/mg protein|
+|upa_pos|byte|%9.0g|janej|uPA-positive? (Upper tertile)|
+|her2_fish_pos|byte|%9.0g|janej|HER2+ with FISH?|
+|ki67|byte|%9.0g||Ki67 - IHC-score|
+|ki67_pos|byte|%9.0g|janej|Ki67>20%?|
+
+Some comments to the list of variables:
+
+- age --- Age at diagnosis, years
+- ddfs --- Time in years from inclusion to diagnosis of first distant metastasis or to last follow-up if no metastases have been found.
+- distmet --- Event indicator corresponding to the time variable ddfs.
+- er_cyt --- Expression of the estrogen receptor alpha - a biomarker which is prognostic, and also, more importantly, predictive of the effect of tamoxifen treatment.
+- pgr_cyt --- Expression of the progesteron receptor.
+- upa --- Expression of the urokinase plasminogen activator---a factor related to metastatic spread.
+- her2_fish_pos --- HER2-status. DNA amplification of the HER2 gene is a prognostic factor, but its role as a predictive marker for effect of Herceptin (trastuzumab) is more important.
+- ki67 --- A proliferation marker measured using immunohistochemistry (IHC). It is used in clinical routine in Sweden as well as in many other countries. Chemotherapy is usually the choice for tumors with a high fraction of ki67-positive tumor cells nuclei. Scale: 0-100%.
+
+The first report of the results from this study: [Malmström et al. J Clin Oncol. 2001 Apr 1;19(7):2010-9](https://doi.org/10.1200/jco.2001.19.7.2010)
+
+### Assignment
+
+The focus of this assignment is on the prognostic value of the biomarker uPA.
+
+1. Briefly describe the patient material:
+    a. Some patient and tumor characteristics
+    b. Treatment
+    c. Time and status variable (ddfs and distmet)
+
+2. Describe in more detail the characteristics of the groups with low and high uPA, separately (upa_pos=0 and upa_pos=1, respectively).
+
+3. Describe the uPA distribution graphically.
+
+4. Describe time to first distant metastasis graphically and estimate the fraction, in the underlying population, free from distant metastases five years after diagnosis of primary breast cancer.
+
+5. Analyze the association between uPA and metastasis-free survival. Describe it both numerically and graphically. Which measure is appropriate?
+
+6. Age is often a confounder in non-randomized studies. Evaluate if the effect of uPA is age dependent by adjusting for age in a multivariable Cox-model.
+
+7. Assume now instead that the aim is to build a prognostic model that can be used to stratify other patients in the underlying population according to risk of developing distant metastases. Which predictors would you like to include in the model and why and how (transformation)? This is not a trivial question. Too many parameters in the model will in general lead to overfit (modelling of noise) and hence bad performance when the model is validated in an independent material, but a model with too few parameters is no better since it will utilize the information in the sample poorly. This question has no correct answer. Argue for your choice of variables in the final model.
+
+8. **Optional:** When including a covariate in a Cox-model, you implicitly assume that the hazard increases or decreases with the same multiplicative factor for each step on the scale of the variable.
+    a. Fit a Cox-model with upa as the only covariate. How many percent does the hazard of distant metastases increase per step on the uPA-scale (per ng/mg protein)?
+    b. Variables, like uPA, which are measured on a ratio scale, do often have a skewed distribution. In such cases, it is usually a good idea to log-transform the values. Create a new variable log2_upa = ln(upa)/ln(2), i.e. the logarithm with base 2, and fit a Cox-model model with log2_upa as the only covariate. How many percent does the hazard increase for each doubling of the uPA concentration?
+    c. Is the fit of this model better than that of the model with uPA on a linear scale (without transformation)?
+    d. How can the fit of two or more models be compared?
+    e. Effects are seldom linear. Transformation of covariates is one way of taking nonlinearity into account; another way is categorization, but you should be aware of that you are throwing away potentially important prognostic information when categorizing variables measured on a continuous scale.
+    f. A good rule is to select a simple model which explains a lot of the variability in the outcome variable. This may sound easy, but it is not. By fitting a model which is too complex you start modelling random noise and such a model will in general not perform well in validation studies, but also models which are too simple will validate badly. Fit a series of univariable Cox-models in which upa has been categorized into two groups of the same size (categorize at the median), into three groups of the same size (tertiles) and finally into four groups of the same size (quartiles). Define the upa-variables as categorical and select the category with the lowest values as the reference group. Interpret the estimated hazard ratios. For the model with upa in 4 groups: draw a forest plot of the HRs with 95% CIs relative to the reference category. Hint: Let the y-axis have 4 values (1-4) labelled Q1, Q2 vs Q1, Q3 vs Q1 and Q4 vs Q1, where Q is an abbreviation for Quartile. For each row, plot the HR vs Q1 on log-scale (base 2). For Q1 the HR vs Q1 will be deterministic 1.00 per definition (no 95% C). Since 1.00 corresponds to 0 on log2-scale (2^0^=1), plot it vs x=0 but label that x-value 1.0. For Q2 vs Q1 plot the corresponding HR and 95% CI and so on. The 95% CI:s will be symmetric around the HR-estimates on the log2-scale. Imagine, e.g., that a HR vs Q1 is 2.0, then the HR on log2-scale is 1.0 since 2^1^=2. In general plot the log2 HR, i.e. ln(HR)/ln(2) and transform the 95% CI-limits accordingly.
+
+Good luck!
