@@ -24,6 +24,7 @@ knitr::opts_chunk$set(
 library(appstats2)
 library(tidyverse)
 library(kableExtra)
+library(DiagrammeR)
 ```
 
 The instructions below are copied from [the Lund University website](https://canvas.education.lu.se/courses/34580/files/6061971?module_item_id=1441737).
@@ -66,6 +67,21 @@ binned_bmi <-
 ```
 
 1. Is smoking a possible confounder when studying the effect of BMI on hypertension? Argue based on common sense and/or knowledge and not based on the data at hand (no calculations needed; just reason and draw one or several DAGs if needed).
+
+```{r dag}
+grViz("
+digraph {
+  rankdir=LR
+  node [shape = plaintext]
+    A [label = 'Hypertension']
+    B [label = 'BMI']
+    C [label = 'Smoking']
+    B->A
+    C->B
+    C->A
+}
+")
+```
 
 > Yes, since smoking can affect both weight, e.g. in patients with advanced COPD, and blood pressure, through deterioration of vascular health.
 
