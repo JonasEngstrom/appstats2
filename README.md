@@ -43,6 +43,7 @@ up the help for the `scania_survey_1000` dataset, enter `?scania_survey_1000`.
 - `bloodpressure` [Dataset](https://canvas.education.lu.se/courses/34580/files/6061993?module_item_id=1441712) used in [exercise 1, analyses of 2-by-2 tables](https://canvas.education.lu.se/courses/34580/files/6116314?module_item_id=1441704).
 - `feldkamp` [Dataset](https://canvas.education.lu.se/courses/34580/files/6061948?module_item_id=1441713) used in [exercise 1, analyses of 2-by-2 tables](https://canvas.education.lu.se/courses/34580/files/6116314?module_item_id=1441704).
 - `asah` Dataset used in exercises on survival analysis, diagnostic tests, and ROC curves.
+- `breast_cancer` [Dataset](https://canvas.education.lu.se/courses/34580/files/6061926?module_item_id=1441783) used in [group exercise one](https://canvas.education.lu.se/courses/34580/files/6061921?module_item_id=1441780).
 
 ## Available Vignettes
 
