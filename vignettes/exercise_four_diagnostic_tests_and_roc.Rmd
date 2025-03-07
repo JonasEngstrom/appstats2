@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 library(appstats2)
 ```
 
-The instructions below are copied from e-mail correspondence regarding the course [Applied Statistics II](https://canvas.education.lu.se/courses/34580) at Lund University.
+The instructions below are copied from the [Lund University website](https://canvas.education.lu.se/courses/34580/files/6061981?module_item_id=1441763).
 
 In this test we will use a data set of markers for outcome prediction following aneurysmal subarachnoid haemorrhage ([Turck N et al: *A multiparameter panel method for outcome prediction following aneurysmal subarachnoid hemorrhage.* **Intensive Care Med 2010**, 36:107-115](https://doi.org/10.1007/s00134-009-1641-y)).
 
@@ -43,9 +43,9 @@ R users can load the data directly within R (run: `data(aSAH)` after calling `li
 
 1. Load the aSAH-data and do not forget to include the commands for reading the data in the syntax file.
 
-ROC for a diagnostic test
+### ROC for a diagnostic test
 
-1. Use summary measures and/or graphs to inspect the data. Focus on variables outcome `wfns` and `s100b` that we will use in the lab.
+1. Use summary measures and/or graphs to inspect the data. Focus on variables `outcome`, `wfns` and `s100b` that we will use in the lab.
 
 2. Our main focus is on the ability of WFNS to predict poor post-ASAH outcome. As a first investigation, tabulate outcome separated on WFNS-score.
     - Is there any association? Positive or negative?
@@ -70,6 +70,25 @@ ROC for a diagnostic test
     - Is s100b predictive of poor outcome of aSAH?
     - Is it better or worse than wfns?
 
+### ROC to evaluate a prediciton model
+
+Go back to the bloodpressure data, and load it in your software.
+
+9. Make ROC-curves for the prediction of ht using bmi and age respectively (two curves, preferably in the same plot).
+    - Comment on the ability of bmi and age to predict ht.
+    - Which is the better predictor? How useful would they be as predictors?
+
+10. Next we will investigate the prediction ability of a multivariable logistic regression, and use a ROC-curve to investigate the predictive ability of the model. To do this, estimate a logistic regression model for ht using bmi, sex and age simultaneously. Save the model predictions, i.e. the estimated probabilities or log-odds of hypertension for each patient (see Hints!).
+
+11. Check the predictive value of the model you built, by building a ROC-curve of outcome vs model predictions of probability of ht. Plot the ROC for the model predictions in the same graph as the ROC using the explanatory variables separately.
+    - Was the predictive value better for the full model? Would you expect it to be?
+
+12. Repeat question 10 and 11 but now include also smoker as a variable in the logistic prediction model. Plot both predicted probabilities in the same ROC-curve, and compare the prediction ability.
+
+### If time permits:
+
+13. Go back to the aSAH study. Calculate (by hand) a confidence interval for the sensitivity and specificity. Compare with an online calculator eg. [http://epitools.ausvet.com.au/content.php?page=CIProportion](http://epitools.ausvet.com.au/content.php?page=CIProportion) In Stata or R you can also do the calculation in your software and compare the results.
+
 At the end of the lab:
 
-9. Close your syntax file (remember to save the last changes).
+14. Close your syntax file (remember to save the last changes).
