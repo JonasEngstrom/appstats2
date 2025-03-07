@@ -168,12 +168,12 @@ overweight_cox |>
 12. Add age to the list of covariates. Fit this multivariable Cox-model and interpret the exponentiated regression coefficients for overweight and age, respectively. How much did the HR for overweight change when adjusting for age?
 
 ```{r age-cox}
-age_cox <- coxph(Surv(bmi_split |> pull(fu_years) + bmi_split |> pull(age), bmi_split |> pull(chd_event)) ~ overweight, data = bmi_split)
+age_cox <- coxph(Surv(bmi_split |> pull(fu_years), bmi_split |> pull(chd_event)) ~ overweight + bmi_split |> pull(age), data = bmi_split)
 summary(age_cox)
 tbl_regression(age_cox)
 ```
 
-```{r age-cox-assumptions, fig.height = 5}
+```{r age-cox-assumptions, fig.height = 10}
 age_cox |>
   cox.zph()
 
