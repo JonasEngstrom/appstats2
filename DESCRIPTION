@@ -19,10 +19,15 @@ RoxygenNote: 7.3.2
 Depends: 
     R (>= 3.5)
 Suggests: 
+    car,
+    gtsummary,
     DiagrammeR,
     kableExtra,
     knitr,
+    pROC,
     rmarkdown,
+    survival,
+    survminer,
     tidyverse
 VignetteBuilder:
     knitr

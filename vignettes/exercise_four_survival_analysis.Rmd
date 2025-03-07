@@ -13,12 +13,20 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.width = 8.9,
+  fig.height = 8.9,
+  out.width = "100%"
 )
 ```
 
-```{r setup}
+```{r setup, message=FALSE}
 library(appstats2)
+library(tidyverse)
+library(kableExtra)
+library(survival)
+library(survminer)
+library(gtsummary)
 ```
 
 The instructions below are copied from e-mail correspondence regarding the course [Applied Statistics II](https://canvas.education.lu.se/courses/34580) at Lund University.
@@ -27,15 +35,40 @@ The instructions below are copied from e-mail correspondence regarding the cours
 
 Load the dataset **bloodpressure** (of course from SYNTAX, do-file or R-script).
 
+> The data is loaded in this document using the command `library(appstats2)` in the code chunk above. For the sourcecode importing the data from the provided Excel file and formatting it as a tibble, please see the file [`bloodpressure.R`](https://github.com/JonasEngstrom/appstats2/blob/main/data-raw/bloodpressure.R).
+
 This is data from a cohort study with primary outcome time to coronary heart disease (chd). The aim was to study risk factors such as systolic and diastolic blood pressure (SBP and DBP), serum cholesterol (SCL) and BMI but also characteristics such as age and sex have been registered.
 
-The outcome in survival analysis consists of two variables, follow-up time and an event indicator. The time variable in thos dataset is fu_years and the event indicator is chd_event coded 0 for censoring (no chd-event recorded during follow-up) and 1 for event (chd).
+The outcome in survival analysis consists of two variables, follow-up time and an event indicator. The time variable in this dataset is fu_years and the event indicator is chd_event coded 0 for censoring (no chd-event recorded during follow-up) and 1 for event (chd).
 
 1. What is the proportion of subjects who have experienced a chd event during follow-up?
 
+```{r chd-proportion}
+bloodpressure |>
+  group_by(chd_event) |>
+  summarize(Number = n(), `Min FU Time` = min(fu_years), `Median FU Time` = median(fu_years), `Max FU Time` = max(fu_years), `Range FU Time` = max(fu_years) - min(fu_years)) |>
+  ungroup() |>
+  mutate(Proportion = Number / sum(Number)) |>
+  relocate(Proportion, .after = Number) |>
+  kbl()
+```
+
 2. What is the median follow-up (and range) for subjects who have not yet experienced an event?
 
+> See above.
+
 3. Draw the corresponding Kaplan-Meier graph showing the estimated probability of being chd-event-free as a function of follow-up time and estimate the median time to coronary heartdisease in the population from which the sample was drawn (Hint: read the following lines if you get stuck here).
+
+```{r chd-km-plot}
+survfit(Surv(bloodpressure |> pull(fu_years), bloodpressure |> pull(chd_event)) ~ 1, data = bloodpressure) |>
+  ggsurvplot(
+    legend = 'none',
+    xlab = 'Follow-up time (years)',
+    ylab = 'Proportion without CHD event',
+    title = 'Kaplan-Meier plot of CHD events',
+    censor = FALSE
+  )
+```
 
 Tricky question, I admit that. The median time to chd event, in the population from which the sample was drawn, cannot be estimated when the Kaplan-Meier estimate does not drop below 50%. Longer follow-up is required.
 
@@ -43,9 +76,32 @@ Overweight is a risk factor for chd:
 
 4. Create a new variable overweight as BMI≥25 kg/m^2^.
 
+```{r overweight-dichotomization}
+bmi_split <-
+  bloodpressure |>
+  mutate(overweight = BMI >= 25)
+```
+
 5. Draw a Kaplan-Meier graph of chd-event-free survival with separate estimates for the two weight categories. Interpretation?
 
+```{r chd-km-plot-by-overweight}
+survfit(Surv(bmi_split |> pull(fu_years), bmi_split |> pull(chd_event)) ~ overweight, data = bmi_split) |>
+  ggsurvplot(
+    xlab = 'Follow-up time (years)',
+    ylab = 'Proportion without CHD event',
+    title = 'Kaplan-Meier plot of CHD events by overweight status',
+    censor = FALSE,
+    legend.title = 'Overweight Status',
+    legend.labs = c('Under/Normal Weight', 'Overweight'),
+    conf.int = TRUE
+  )
+```
+
 6. Test if the difference between the two “Survival curves” is significant (hint: logrank test).
+
+```{r overweight-survival-diff-test}
+survdiff(Surv(bmi_split |> pull(fu_years), bmi_split |> pull(chd_event)) ~ overweight, data = bmi_split)
+```
 
 We will later in the course use regression models to “control for” confounding factors, but first we try the much simpler method of stratification.
 
@@ -53,18 +109,75 @@ We might suspect that age is a confounder when studying the association between 
 
 7. Define old as age>45.
 
+```{r age-stratification}
+bmi_split <-
+  bmi_split |>
+  mutate(old_age = age >= 45)
+```
+
 8. Evaluate the “effect of overweight” separately for young and old subject (Kaplan-Meier and logrank). Do we have evidence against the null hypothesis (chd-event-free survival the same in both BMI groups) for both young and old subjects in the population from which the sample was drawn?
+
+```{r chd-km-plot-by-age}
+survfit(Surv(bmi_split |> pull(fu_years), bmi_split |> pull(chd_event)) ~ old_age, data = bmi_split) |>
+  ggsurvplot(
+    xlab = 'Follow-up time (years)',
+    ylab = 'Proportion without CHD event',
+    title = 'Kaplan-Meier plot of CHD events by age',
+    censor = FALSE,
+    legend.title = 'Age strata',
+    legend.labs = c('Age under 45 year', 'Age equal to or greater than 45 years'),
+    conf.int = TRUE
+  )
+```
+
+```{r age-survival-diff-test}
+survdiff(Surv(bmi_split |> pull(fu_years), bmi_split |> pull(chd_event)) ~ old_age, data = bmi_split)
+```
 
 ## Cox regression:
 
-The by far most commonly used regression model for survival data is the Cox model. Contrary to the logrank test, this method gives us an effect measure – the hazard ratio (HR). Furthermore, the model provides a framework for multivariable adjustment for confounding and for development of multivariable predictors of survival (more about that later in this course).
+The by far most commonly used regression model for survival data is the Cox model. Contrary to the logrank test, this method gives us an effect measure---the hazard ratio (HR). Furthermore, the model provides a framework for multivariable adjustment for confounding and for development of multivariable predictors of survival (more about that later in this course).
 
 For SPSS-users: Don’t forget to SET SPLIT FILE OFF before you continue.
 
 9. Above we studied overweight as a risk factor for coronary heart disease graphically using a Kaplan-Meier graph and numerically using a logrank-test. Now, fit the corresponding univariable Cox-model with overweight as the only covariate and interpret the effect estimate.
 
+```{r overweight-cox}
+overweight_cox <- coxph(Surv(bmi_split |> pull(fu_years), bmi_split |> pull(chd_event)) ~ overweight, data = bmi_split)
+summary(overweight_cox)
+tbl_regression(overweight_cox)
+```
+
 The effect estimate corresponding to this model is a hazard ratio. We have hence estimated the ratio of the chd rates (number of chd:s per time unit) in the two groups. Note that we have only 0 or 1 event per subject. More advanced methods are necessary to handle multiple episodes (dependent) data.
 
 10. Compare the *P*-value from the log-rank test to that of the effect estimate in the Cox-model. These are usually very close to each other if the proportional hazards assumption is fulfilled.
 
+```{r overweight-cox-assumptions, fig.height = 5}
+overweight_cox |>
+  cox.zph()
+
+overweight_cox |>
+  cox.zph() |>
+  ggcoxzph()
+```
+
 11. Do you think that the underlying assumption of proportional hazards is reasonably well fulfilled for the Cox-model fitted above?
+
+> ?
+
+12. Add age to the list of covariates. Fit this multivariable Cox-model and interpret the exponentiated regression coefficients for overweight and age, respectively. How much did the HR for overweight change when adjusting for age?
+
+```{r age-cox}
+age_cox <- coxph(Surv(bmi_split |> pull(fu_years), bmi_split |> pull(chd_event)) ~ overweight + bmi_split |> pull(age), data = bmi_split)
+summary(age_cox)
+tbl_regression(age_cox)
+```
+
+```{r age-cox-assumptions, fig.height = 10}
+age_cox |>
+  cox.zph()
+
+age_cox |>
+  cox.zph() |>
+  ggcoxzph()
+```
