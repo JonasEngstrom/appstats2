@@ -23,6 +23,8 @@ Suggests:
     kableExtra,
     knitr,
     rmarkdown,
+    survival,
+    survminer,
     tidyverse
 VignetteBuilder:
     knitr
