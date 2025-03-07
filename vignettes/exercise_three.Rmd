@@ -25,6 +25,7 @@ library(appstats2)
 library(tidyverse)
 library(kableExtra)
 library(DiagrammeR)
+library(car)
 ```
 
 The instructions below are copied from [the Lund University website](https://canvas.education.lu.se/courses/34580/files/6061971?module_item_id=1441737).
@@ -172,6 +173,10 @@ ht_binned_bmi_logistic_model |>
 ```
 
   > Stronger the higher the weight category.
+  
+```{r anova}
+Anova(ht_binned_bmi_logistic_model, test.statistic='Wald', type='III')
+```
 
 6. Add smoking to the model above and interpret the three **adjusted** odds ratios for BMI as a factor on 4 levels.
 
@@ -234,7 +239,7 @@ summary(sbp_bmi_smoking_linear_model)
 
   > It decreased the p-value for BMI from 1.07e-13 to < 2e-16.
 
-11. How much did the $\text{R}^2$ increase when adjusting for smoking?
+11. How much did the R^2^ increase when adjusting for smoking?
 
   > The adjusted R-squared increased from 0.1168 to 0.1664.
 
