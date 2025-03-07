@@ -13,12 +13,18 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.width = 8.9,
+  fig.height = 8.9,
+  out.width = "100%"
 )
 ```
 
-```{r setup}
+```{r setup, message=FALSE}
 library(appstats2)
+library(tidyverse)
+library(kableExtra)
+library(pROC)
 ```
 
 The instructions below are copied from the [Lund University website](https://canvas.education.lu.se/courses/34580/files/6061981?module_item_id=1441763).
@@ -43,47 +49,247 @@ R users can load the data directly within R (run: `data(aSAH)` after calling `li
 
 1. Load the aSAH-data and do not forget to include the commands for reading the data in the syntax file.
 
+> The data is loaded in this document using the command `library(appstats2)` in the code chunk above. For the sourcecode importing the data from the provided Excel file and formatting it as a tibble, please see the file [`asah.R`](https://github.com/JonasEngstrom/appstats2/blob/main/R/asah.R).
+
 ### ROC for a diagnostic test
 
 1. Use summary measures and/or graphs to inspect the data. Focus on variables `outcome`, `wfns` and `s100b` that we will use in the lab.
 
 2. Our main focus is on the ability of WFNS to predict poor post-ASAH outcome. As a first investigation, tabulate outcome separated on WFNS-score.
     - Is there any association? Positive or negative?
+    ```{r tabluate-outcome, message=FALSE}
+    asah |>
+      group_by(outcome, wfns) |>
+      summarize(n = n()) |>
+      pivot_wider(names_from = wfns, values_from = n) |>
+      kbl() |>
+      add_header_above(c(' ' = 1, 'WFNS' = 5)) |>
+      kable_classic()
+    ```
 
 3. Now dichotomize wfns with cut-point=3, i.e create a new variable wfns_3 that is 0 if wfns<=3 and 1 if wfns>3
 
+    ```{r create-wfns-3}
+    modified_asah <-
+      asah |>
+      mutate(
+        wfns_3 = case_when(
+          wfns <= 3 ~ FALSE,
+          wfns > 3 ~ TRUE
+        )
+      )
+    ```
+
 4. Tabulate wfns_3 versus outcome.
+
+    ```{r tabluate-wfns-3, message=FALSE}
+    modified_asah |>
+      group_by(outcome, wfns_3) |>
+      summarize(n = n()) |>
+      pivot_wider(names_from = wfns_3, values_from = n) |>
+      kbl() |>
+      add_header_above(c(' ' = 1, 'WFNS ≤ 3' = 2)) |>
+      kable_classic()
+    ```
+    
     - Is Poor outcome more common for patients with low or high wfns in the sample?
+    
+  > A poor otucome is more common for people with a low WFNS.
 
 5. Calculate (by hand or if you find a good function in your statistical program) the sensitivity and specificity of the dichotomized wfns score (wfns_3).
     - What is the interpretation of the estimates?
 
+    ```{r sensitivity-function-definintion}
+    #' Sensitivity
+    #' 
+    #' Calculate sensitivity from true positives and false negatives.
+    #'
+    #' @param true_positives Number of true positives.
+    #' @param false_negatives Number of false negatives.
+    #'
+    #' @returns Sensitivity.
+    #' @export
+    #'
+    #' @examples
+    #' sensitivity(20, 10)
+    sensitivity <- function(true_positives, false_negatives) {
+      true_positives / (true_positives + false_negatives)
+    }
+    ```
+    <!-- TP / (TP + FN) = Sens -->
+    
+    ```{r specificity-function-definintion}
+    #' Specificity
+    #' 
+    #' Calculate specificity from true negatives and false positives.
+    #'
+    #' @param true_negatives Number of true negatives.
+    #' @param false_positives Number of false positives.
+    #'
+    #' @returns Specificity
+    #' @export
+    #'
+    #' @examples
+    #' specificity(20, 10)
+    specificity <- function(true_negatives, false_positives) {
+      true_negatives / (true_negatives + false_positives)
+    }
+    ```
+    <!-- TN / (TN + FP) = Spec -->
+    
+    ```{r ppv-function-definition}
+    #' Positive Predictive Value
+    #' 
+    #' Calculate positive predictive value from true and false positives.
+    #'
+    #' @param true_positives Number of true positives.
+    #' @param false_positives Number of false positives.
+    #'
+    #' @returns Positive predictive value.
+    #' @export
+    #'
+    #' @examples
+    #' ppv(2, 39)
+    ppv <- function(true_positives, false_positives){
+      true_positives / (true_positives + false_positives)
+    }
+    ```
+     <!-- PPV = TP / (TP + FP) -->
+    
+    ```{r npv-function-definition}
+    #' Negative Predictive Value
+    #' 
+    #' Calculate negative predictive value from true and false positives.
+    #'
+    #' @param true_negatives Number of true negatives.
+    #' @param false_negatives Number of false negatives.
+    #'
+    #' @returns Negative predictive value.
+    #' @export
+    #'
+    #' @examples
+    #' npv(2, 39)
+    npv <- function(true_negatives, false_negatives){
+      true_negatives / (true_negatives + false_negatives)
+    }
+    ```
+
+> Sensitivity `r sensitivity(true_positives=26, false_negatives=15)`, specificity `r specificity(true_negatives=60, false_positives=12)`. The test is more specific than sensitive.
+
 6. Similarly calculate the positive and negative predictive value of the dichotomized wfns score (wfns_3).
     - Interpret the results.
 
+> Positive predictive value `r ppv(true_positives=26, false_positives=12)`, negative predictive value `r npv(true_negatives=60, false_negatives=15)`. The test is better at ruling out than ruling in.
+
 7. Next – produce a ROC-curve for wfns (using all 5 levels).
+    ```{r roc}
+    roc(modified_asah |> pull(outcome), modified_asah |> pull(wfns))
+    roc(modified_asah |> pull(outcome), modified_asah |> pull(wfns)) |>
+      ggroc()
+    ```
+    
     - Can you identify the cutoff you used above?
+    
+    > Yes.
+    
     - Can you identify the other cut-offs in the ROC-curve?
+  
+    > ?
+  
     - Is wfns predictive for outcome after aSAH?
+  
+    > Yes.
 
 8. Test the predictive value of s100b.
     - Is s100b predictive of poor outcome of aSAH?
+    
+    ```{r}
+    roc(modified_asah |> pull(outcome), modified_asah |> pull(s100b))
+    roc(modified_asah |> pull(outcome), modified_asah |> pull(s100b)) |>
+      ggroc()
+    ```
+    
+    > Yes.
+    
     - Is it better or worse than wfns?
+    
+    > The AUC is lower than for WFNS, indicating that S100B might be worse.
 
 ### ROC to evaluate a prediciton model
 
 Go back to the bloodpressure data, and load it in your software.
 
 9. Make ROC-curves for the prediction of ht using bmi and age respectively (two curves, preferably in the same plot).
+
+    ```{r ht-rocs}
+    ht_bmi_roc <- roc(bloodpressure |> pull(ht), bloodpressure |> pull(BMI))
+    ht_age_roc <- roc(bloodpressure |> pull(ht), bloodpressure |> pull(age))
+    ht_bmi_roc
+    ht_age_roc
+    ```
+    
+    ```{r ht-roc-plots}
+    ggroc(list(BMI = ht_bmi_roc, Age = ht_age_roc))
+    ```
+
     - Comment on the ability of bmi and age to predict ht.
+    
+    > They seem similar.
+    
     - Which is the better predictor? How useful would they be as predictors?
+    
+    > The AUC for age is slightly higher but BMI is probably more clinically useful.
 
 10. Next we will investigate the prediction ability of a multivariable logistic regression, and use a ROC-curve to investigate the predictive ability of the model. To do this, estimate a logistic regression model for ht using bmi, sex and age simultaneously. Save the model predictions, i.e. the estimated probabilities or log-odds of hypertension for each patient (see Hints!).
 
+```{r log-ht-model}
+log_ht_model <-
+  glm(ht ~ BMI + sex + age, 'binomial', bloodpressure)
+
+predictions <-
+  log_ht_model |>
+  predict(
+    bloodpressure |>
+      select(BMI, sex, age)
+  )
+
+log_ht_model_roc <-
+  roc(ht ~ predictions, data = bloodpressure)
+```
+
 11. Check the predictive value of the model you built, by building a ROC-curve of outcome vs model predictions of probability of ht. Plot the ROC for the model predictions in the same graph as the ROC using the explanatory variables separately.
+
+    ```{r log-ht-model-roc}
+    log_ht_model_roc
+    log_ht_model_roc |>
+      ggroc()
+    ```
+
     - Was the predictive value better for the full model? Would you expect it to be?
+    
+    > Yes and yes.
 
 12. Repeat question 10 and 11 but now include also smoker as a variable in the logistic prediction model. Plot both predicted probabilities in the same ROC-curve, and compare the prediction ability.
+
+```{r smoker-log-ht-model}
+smoker_log_ht_model <-
+  glm(ht ~ BMI + sex + age + smoker, 'binomial', bloodpressure)
+
+smoker_predictions <-
+  smoker_log_ht_model |>
+  predict(
+    bloodpressure |>
+      select(BMI, sex, age, smoker)
+  )
+
+smoker_log_ht_model_roc <-
+  roc(ht ~ smoker_predictions, data = bloodpressure)
+```
+
+```{r smoker-log-ht-model-roc}
+smoker_log_ht_model_roc
+ggroc(list(Smoker = smoker_log_ht_model_roc, Non = log_ht_model_roc))
+```
 
 ### If time permits:
 

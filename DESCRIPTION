@@ -24,6 +24,7 @@ Suggests:
     DiagrammeR,
     kableExtra,
     knitr,
+    pROC,
     rmarkdown,
     survival,
     survminer,
