@@ -26,6 +26,7 @@ library(tidyverse)
 library(kableExtra)
 library(survival)
 library(survminer)
+library(gtsummary)
 ```
 
 The instructions below are copied from e-mail correspondence regarding the course [Applied Statistics II](https://canvas.education.lu.se/courses/34580) at Lund University.
@@ -135,14 +136,48 @@ survdiff(Surv(bmi_split |> pull(fu_years), bmi_split |> pull(chd_event)) ~ old_a
 
 ## Cox regression:
 
-The by far most commonly used regression model for survival data is the Cox model. Contrary to the logrank test, this method gives us an effect measure – the hazard ratio (HR). Furthermore, the model provides a framework for multivariable adjustment for confounding and for development of multivariable predictors of survival (more about that later in this course).
+The by far most commonly used regression model for survival data is the Cox model. Contrary to the logrank test, this method gives us an effect measure---the hazard ratio (HR). Furthermore, the model provides a framework for multivariable adjustment for confounding and for development of multivariable predictors of survival (more about that later in this course).
 
 For SPSS-users: Don’t forget to SET SPLIT FILE OFF before you continue.
 
 9. Above we studied overweight as a risk factor for coronary heart disease graphically using a Kaplan-Meier graph and numerically using a logrank-test. Now, fit the corresponding univariable Cox-model with overweight as the only covariate and interpret the effect estimate.
 
+```{r overweight-cox}
+overweight_cox <- coxph(Surv(bmi_split |> pull(fu_years), bmi_split |> pull(chd_event)) ~ overweight, data = bmi_split)
+summary(overweight_cox)
+tbl_regression(overweight_cox)
+```
+
 The effect estimate corresponding to this model is a hazard ratio. We have hence estimated the ratio of the chd rates (number of chd:s per time unit) in the two groups. Note that we have only 0 or 1 event per subject. More advanced methods are necessary to handle multiple episodes (dependent) data.
 
 10. Compare the *P*-value from the log-rank test to that of the effect estimate in the Cox-model. These are usually very close to each other if the proportional hazards assumption is fulfilled.
 
+```{r overweight-cox-assumptions, fig.height = 5}
+overweight_cox |>
+  cox.zph()
+
+overweight_cox |>
+  cox.zph() |>
+  ggcoxzph()
+```
+
 11. Do you think that the underlying assumption of proportional hazards is reasonably well fulfilled for the Cox-model fitted above?
+
+> ?
+
+12. Add age to the list of covariates. Fit this multivariable Cox-model and interpret the exponentiated regression coefficients for overweight and age, respectively. How much did the HR for overweight change when adjusting for age?
+
+```{r age-cox}
+age_cox <- coxph(Surv(bmi_split |> pull(fu_years) + bmi_split |> pull(age), bmi_split |> pull(chd_event)) ~ overweight, data = bmi_split)
+summary(age_cox)
+tbl_regression(age_cox)
+```
+
+```{r age-cox-assumptions, fig.height = 5}
+age_cox |>
+  cox.zph()
+
+age_cox |>
+  cox.zph() |>
+  ggcoxzph()
+```

@@ -20,6 +20,7 @@ Depends:
     R (>= 3.5)
 Suggests: 
     car,
+    gtsummary,
     DiagrammeR,
     kableExtra,
     knitr,
