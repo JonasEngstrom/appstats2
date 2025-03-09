@@ -17,10 +17,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
-library(appstats2)
-```
-
 The instructions below are copied from [the Lund University website](https://canvas.education.lu.se/courses/34580/files/6061921?module_item_id=1441780).
 
 ## Prognostic factors in breast cancer---focus on uPA
@@ -73,12 +69,72 @@ The first report of the results from this study: [Malmström et al. J Clin Oncol
 
 ### Assignment
 
+```{r setup, message=FALSE}
+# Load project data.
+library(appstats2)
+
+# Load Tidyverse packages for data manipulation.
+library(tidyverse)
+
+# Load gtsummary package for making summary tables.
+library(gtsummary)
+```
+
+> The breast cancer data is loaded in this document using the command `library(appstats2)` in the code chunk above. For the sourcecode importing the data from the provided Excel file and formatting it as a tibble, please see the file [`breast_cancer.R`](https://github.com/JonasEngstrom/appstats2/blob/main/data-raw/breast_cancer.R). The Excel file [`breast_cancer.xls`](https://canvas.education.lu.se/courses/34580/files/6061926?module_item_id=1441783) referred to in the code can be found on the Lund University website.
+
 The focus of this assignment is on the prognostic value of the biomarker uPA.
 
 1. Briefly describe the patient material:
     a. Some patient and tumor characteristics
     b. Treatment
     c. Time and status variable (ddfs and distmet)
+    
+    ```{r table-one}
+    breast_cancer |>
+      mutate(adjuvant = if_else(adjuvant, 'Received', 'Not received')) |>
+      tbl_summary(
+        include = c(
+          age,
+          ddfs,
+          distmet,
+          tumsize,
+          hist_grade,
+          mitotic_grade,
+          tubular_grade,
+          nuclear_grade,
+          er_cyt,
+          pgr_cyt,
+          upa,
+          her2_fish_pos,
+          ki67
+        ),
+        by = adjuvant,
+        label = list(
+          age ~ 'Age',
+          ddfs ~ 'Distant disease-free survival (years)',
+          distmet ~ 'Distant metastases',
+          tumsize ~ 'Tumor size (mm)',
+          hist_grade ~ 'Histological grade',
+          mitotic_grade ~ 'Mitotic grade',
+          tubular_grade ~ 'Tubular grade',
+          nuclear_grade ~ 'Nuclear grade',
+          er_cyt ~ 'ER (fmol/mg)',
+          pgr_cyt ~ 'PgR (fmol/mg)',
+          upa ~ 'uPA (ng/mg)',
+          her2_fish_pos ~ 'HER2 positivity',
+          ki67 ~ 'Ki-67 IHC score'
+        ),
+        missing = 'no',
+        missing_text = 'Missing'
+      ) |>
+      modify_spanning_header(c('stat_1', 'stat_2') ~ '**Adjuvant treatment**') |>
+      add_overall() |>
+      modify_table_body(~.x %>% relocate(stat_0, .after = label)) |>
+      add_p() |>
+      bold_labels() |>
+      modify_footnote_header('Median (Q1, Q3); Frequency (%).', columns = all_stat_cols()) |>
+      modify_footnote_header('ER, estrogen receptor \U03B1; HER2; human epidermal growth factor receptor 2; IHC, immunohistochemistry; Ki-61, Kiel 67; PgR, progesteron receptor; uPA, urokinase plasminogen activator.', columns = 'label')
+    ```
 
 2. Describe in more detail the characteristics of the groups with low and high uPA, separately (upa_pos=0 and upa_pos=1, respectively).
 
