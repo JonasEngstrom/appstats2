@@ -81,6 +81,10 @@ library(tidyverse)
 
 # Load gtsummary package for making summary tables.
 library(gtsummary)
+
+# Load survival and survminer for drawing Kaplan-Meier plots.
+library(survival)
+library(survminer)
 ```
 
 > The breast cancer data is loaded in this document using the command `library(appstats2)` in the code chunk above. For the sourcecode importing the data from the provided Excel file and formatting it as a tibble, please see the file [`breast_cancer.R`](https://github.com/JonasEngstrom/appstats2/blob/main/data-raw/breast_cancer.R). The Excel file [`breast_cancer.xls`](https://canvas.education.lu.se/courses/34580/files/6061926?module_item_id=1441783) referred to in the code can be found on the Lund University website.
@@ -207,6 +211,16 @@ The focus of this assignment is on the prognostic value of the biomarker uPA.
     ```
 
 4. Describe time to first distant metastasis graphically and estimate the fraction, in the underlying population, free from distant metastases five years after diagnosis of primary breast cancer.
+
+    ```{r km-plot, fig.cap='Figure 2: Kaplan-Meier plot of time until distant metastases.'}
+    survfit(Surv(ddfs, distmet) ~ 1, data = breast_cancer) |>
+      ggsurvplot(
+        legend = 'none',
+        xlab = 'Follow-up time (years)',
+        ylab = 'Proportion without distant metastases',
+        title = 'Time until distant metastasis or last follow-up'
+      )
+    ```
 
 5. Analyze the association between uPA and metastasis-free survival. Describe it both numerically and graphically. Which measure is appropriate?
 
