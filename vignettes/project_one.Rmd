@@ -133,10 +133,60 @@ The focus of this assignment is on the prognostic value of the biomarker uPA.
       add_p() |>
       bold_labels() |>
       modify_footnote_header('Median (Q1, Q3); Frequency (%).', columns = all_stat_cols()) |>
-      modify_footnote_header('ER, estrogen receptor \U03B1; HER2; human epidermal growth factor receptor 2; IHC, immunohistochemistry; Ki-61, Kiel 67; PgR, progesteron receptor; uPA, urokinase plasminogen activator.', columns = 'label')
+      modify_footnote_header('ER, estrogen receptor \U03B1; HER2; human epidermal growth factor receptor 2; IHC, immunohistochemistry; Ki-61, Kiel 67; PgR, progesteron receptor; uPA, urokinase plasminogen activator.', columns = 'label') |>
+      modify_caption('Table 1. Patient characteristics by treatment received.')
     ```
 
 2. Describe in more detail the characteristics of the groups with low and high uPA, separately (upa_pos=0 and upa_pos=1, respectively).
+
+    ```{r table-two}
+    breast_cancer |>
+      mutate(adjuvant = if_else(adjuvant, 'Received', 'Not received')) |>
+      mutate(upa_pos = if_else(upa_pos, '< 0.231', '≥ 0.231')) |>
+      tbl_summary(
+        include = c(
+          age,
+          ddfs,
+          distmet,
+          tumsize,
+          hist_grade,
+          mitotic_grade,
+          tubular_grade,
+          nuclear_grade,
+          er_cyt,
+          pgr_cyt,
+          her2_fish_pos,
+          ki67,
+          adjuvant
+        ),
+        by = upa_pos,
+        label = list(
+          age ~ 'Age',
+          ddfs ~ 'Distant disease-free survival (years)',
+          distmet ~ 'Distant metastases',
+          tumsize ~ 'Tumor size (mm)',
+          hist_grade ~ 'Histological grade',
+          mitotic_grade ~ 'Mitotic grade',
+          tubular_grade ~ 'Tubular grade',
+          nuclear_grade ~ 'Nuclear grade',
+          er_cyt ~ 'ER (fmol/mg)',
+          pgr_cyt ~ 'PgR (fmol/mg)',
+          her2_fish_pos ~ 'HER2 positivity',
+          ki67 ~ 'Ki-67 IHC score',
+          adjuvant ~ 'Adjuvant treatment'
+        ),
+        missing = 'no',
+        missing_text = 'Missing'
+      ) |>
+      modify_spanning_header(c('stat_1', 'stat_2') ~ '**uPA (ng/mg)**') |>
+      add_overall() |>
+      modify_table_body(~.x %>% relocate(stat_0, .after = label)) |>
+      add_p() |>
+      bold_labels() |>
+      modify_footnote_header('Median (Q1, Q3); Frequency (%).', columns = all_stat_cols()) |>
+      modify_footnote_header('ER, estrogen receptor \U03B1; HER2; human epidermal growth factor receptor 2; IHC, immunohistochemistry; Ki-61, Kiel 67; PgR, progesteron receptor; uPA, urokinase plasminogen activator.', columns = 'label') |>
+      modify_caption('Table 2. Patient characteristics by uPA level.')
+    ```
 
 3. Describe the uPA distribution graphically.
 
