@@ -13,7 +13,10 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.width = 8.9,
+  fig.height = 5,
+  out.width = "100%"
 )
 ```
 
@@ -189,6 +192,19 @@ The focus of this assignment is on the prognostic value of the biomarker uPA.
     ```
 
 3. Describe the uPA distribution graphically.
+
+    ```{r upa-graphic-distribution, fig.cap='Figure 1: uPA distribution. Logarithmic scale due to one extreme outlier.'}
+    breast_cancer |>
+      ggplot(aes(x = upa)) +
+        geom_histogram() +
+        scale_x_log10() +
+        labs(
+          x = 'uPA (log10(ng/ml))',
+          y = 'Count',
+          title = 'Histogram of uPA level distribution',
+          caption = 'uPA; urokinasse plasminogen activator.'
+        )
+    ```
 
 4. Describe time to first distant metastasis graphically and estimate the fraction, in the underlying population, free from distant metastases five years after diagnosis of primary breast cancer.
 
