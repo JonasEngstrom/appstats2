@@ -28,6 +28,7 @@ Suggests:
     rmarkdown,
     survival,
     survminer,
+    tidymodels,
     tidyverse
 VignetteBuilder:
     knitr

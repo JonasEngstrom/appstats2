@@ -143,7 +143,7 @@ The focus of this assignment is on the prognostic value of the biomarker uPA.
       modify_spanning_header(c('stat_1', 'stat_2') ~ '**Adjuvant treatment**') |>
       add_overall() |>
       modify_table_body(~.x %>% relocate(stat_0, .after = label)) |>
-      add_p() |>
+      # add_p() |>
       bold_labels() |>
       modify_footnote_header('Median (Q1, Q3); Frequency (%).', columns = all_stat_cols()) |>
       modify_footnote_header('ER, estrogen receptor \U03B1; HER2; human epidermal growth factor receptor 2; IHC, immunohistochemistry; Ki-61, Kiel 67; PgR, progesteron receptor; uPA, urokinase plasminogen activator.', columns = 'label') |>
@@ -194,7 +194,7 @@ The focus of this assignment is on the prognostic value of the biomarker uPA.
       modify_spanning_header(c('stat_1', 'stat_2') ~ '**uPA (ng/mg)**') |>
       add_overall() |>
       modify_table_body(~.x %>% relocate(stat_0, .after = label)) |>
-      add_p() |>
+      # add_p() |>
       bold_labels() |>
       modify_footnote_header('Median (Q1, Q3); Frequency (%).', columns = all_stat_cols()) |>
       modify_footnote_header('ER, estrogen receptor \U03B1; HER2; human epidermal growth factor receptor 2; IHC, immunohistochemistry; Ki-61, Kiel 67; PgR, progesteron receptor; uPA, urokinase plasminogen activator.', columns = 'label') |>
@@ -206,30 +206,32 @@ The focus of this assignment is on the prognostic value of the biomarker uPA.
     ```{r upa-linear-distribution, fig.cap='Figure 1: uPA distribution.', warning=FALSE}
     breast_cancer |>
       ggplot(aes(x = upa)) +
-        geom_histogram() +
-        geom_boxplot(aes(y = 80), width = 6) +
-        geom_jitter(aes(y = 80), height = 1, alpha = .25) +
+        geom_histogram(fill = 'blue3', alpha = .5, color = 'blue3') +
+        geom_boxplot(aes(y = 80), width = 6, alpha = .5, color = 'blue3') +
+        geom_jitter(aes(y = 80), height = 1, alpha = .25, fill = 'blue3', alpha = .5, color = 'blue3') +
         labs(
           x = 'uPA (ng/ml)',
           y = 'Count (for histogram)',
           title = 'uPA level distribution',
           caption = 'uPA; urokinase plasminogen activator.'
-        )
+        ) +
+        theme_minimal()
     ```
 
     ```{r upa-log-distribution, fig.cap='Figure 2: uPA distribution on logarithmic scale due to one extreme outlier.', warning=FALSE}
     breast_cancer |>
       ggplot(aes(x = upa)) +
-        geom_histogram() +
-        geom_boxplot(aes(y = 25), width = 3) +
-        geom_jitter(aes(y = 25), height = 1, alpha = .25) +
+        geom_histogram(fill = 'blue3', alpha = .5, color = 'blue3') +
+        geom_boxplot(aes(y = 25), width = 3, alpha = .5, color = 'blue3') +
+        geom_jitter(aes(y = 25), height = 1, alpha = .25, fill = 'blue3', alpha = .5, color = 'blue3') +
         scale_x_log10() +
         labs(
           x = 'uPA (log10(ng/ml))',
           y = 'Count (for histogram)',
           title = 'uPA level distribution',
           caption = 'uPA; urokinase plasminogen activator.'
-        )
+        ) +
+        theme_minimal()
     ```
 
 4. Describe time to first distant metastasis graphically and estimate the fraction, in the underlying population, free from distant metastases five years after diagnosis of primary breast cancer.
@@ -247,15 +249,49 @@ The focus of this assignment is on the prognostic value of the biomarker uPA.
         legend = 'none',
         xlab = 'Follow-up time (years)',
         ylab = 'Proportion without distant metastases',
-        title = 'Time until distant metastasis or last follow-up'
+        title = 'Time until distant metastasis or last follow-up',
+        palette = alpha(c('blue3'), c(0.5))
       )
     
     km_plot$plot +
       geom_segment(aes(x = 0, xend = 5, y = five_year$surv, yend = five_year$surv), linetype = 'dashed') +
-      geom_segment(aes(x = 5, xend = 5, y = 0, yend = five_year$surv), linetype = 'dashed')
+      geom_segment(aes(x = 5, xend = 5, y = 0, yend = five_year$surv), linetype = 'dashed') +
+      theme_minimal() +
+      theme(
+        legend.position = 'none'
+      ) +
+      annotate("text", x = 5.5, y = .875, label = paste(round(five_year$surv * 100), '%'))
     ```
 
 5. Analyze the association between uPA and metastasis-free survival. Describe it both numerically and graphically. Which measure is appropriate?
+
+    ```{r km-plot-by-upa-pos, fig.cap='Figure 4: Kaplan-Meier plot of time until distant metastases by uPA level..'}
+    survival_fit_by_upa_pos <- survfit(Surv(ddfs, distmet) ~ upa_pos, data = breast_cancer)
+    
+    # five_year_by_upa_pos <-
+    #   survival_fit_by_upa_pos |>
+    #   summary(times = 5)
+    
+    km_plot_by_upa_pos <-
+      survival_fit_by_upa_pos |>
+      ggsurvplot(
+        conf.int = TRUE,
+        xlab = 'Follow-up time (years)',
+        ylab = 'Proportion without distant metastases',
+        title = 'Time until distant metastasis or last follow-up',
+        legend.title = 'Urokinase plasminogen activator',
+        legend.labs = c('< 0.231 ng/mg', '≥ 0.231 ng/mg'),
+        palette = alpha(c('blue3', 'red3'), c(0.5, 0.5))
+      )
+    
+    km_plot_by_upa_pos$plot +
+      theme_minimal() +
+      theme(
+        legend.position = 'bottom'
+      )
+      # geom_segment(aes(x = 0, xend = 5, y = five_year$surv, yend = five_year$surv), linetype = 'dashed') +
+      # geom_segment(aes(x = 5, xend = 5, y = 0, yend = five_year$surv), linetype = 'dashed')
+    ```
 
     ```{r log-model}
     log_model <-
@@ -291,7 +327,7 @@ The focus of this assignment is on the prognostic value of the biomarker uPA.
       pull(relative_risk)
     ```
     
-    ```{r upa-grouped-box-pot, fig.cap='Figure 4: Presence of distant metastases by uPA level.'}
+    ```{r upa-grouped-box-pot, fig.cap='Figure 5: Presence of distant metastases by uPA level.'}
     breast_cancer |>
       mutate(distmet = if_else(distmet, 'Distant metastases', 'No distant metastases')) |>
       ggplot(aes(x = distmet, y = upa)) +
@@ -306,18 +342,23 @@ The focus of this assignment is on the prognostic value of the biomarker uPA.
           legend.position = 'none',
           axis.title.x = element_blank()
         ) +
-        scale_y_log10()
+        scale_y_log10() +
+        theme_minimal() +
+        theme(
+          legend.position = 'none'
+        ) +
+        scale_color_manual(values = c('red3', 'blue3'))
     ```
 
 6. Age is often a confounder in non-randomized studies. Evaluate if the effect of uPA is age dependent by adjusting for age in a multivariable Cox-model.
 
-    ```{r cox-reg-age}
+    ```{r cox-reg-age, fig.caption='Table 3: Cox regression.'}
     cox_reg_age <- coxph(Surv(ddfs, distmet) ~ upa + age, data = breast_cancer)
     summary(cox_reg_age)
     tbl_regression(cox_reg_age, exponentiate = TRUE)
     ```
 
-    ```{r cox-reg}
+    ```{r cox-reg, fig.caption='Table 4: Cox regression.'}
     cox_reg <- coxph(Surv(ddfs, distmet) ~ upa, data = breast_cancer)
     summary(cox_reg)
     tbl_regression(cox_reg, exponentiate = TRUE)
@@ -348,13 +389,13 @@ The focus of this assignment is on the prognostic value of the biomarker uPA.
       mutate(age_group = factor(age_group, ordered=FALSE) |> relevel('> 50'))
     ```
 
-    ```{r age-group-cox-reg}
+    ```{r age-group-cox-reg, fig.caption='Table 5: Cox regression.'}
     cox_reg_age_groups <- coxph(Surv(ddfs, distmet) ~ upa + age_group, data = age_groups)
     summary(cox_reg_age_groups)
     tbl_regression(cox_reg_age_groups, exponentiate = TRUE)
     ```
 
-    ```{r age-group-cox-reg-ups-strata}
+    ```{r age-group-cox-reg-ups-strata, fig.caption='Table 6: Cox regression.'}
     cox_reg_age_groups_ups_strata <- coxph(Surv(ddfs, distmet) ~ upa_pos + age_group, data = age_groups)
     summary(cox_reg_age_groups_ups_strata)
     tbl_regression(cox_reg_age_groups_ups_strata, exponentiate = TRUE)
@@ -362,20 +403,37 @@ The focus of this assignment is on the prognostic value of the biomarker uPA.
 
 7. Assume now instead that the aim is to build a prognostic model that can be used to stratify other patients in the underlying population according to risk of developing distant metastases. Which predictors would you like to include in the model and why and how (transformation)? This is not a trivial question. Too many parameters in the model will in general lead to overfit (modelling of noise) and hence bad performance when the model is validated in an independent material, but a model with too few parameters is no better since it will utilize the information in the sample poorly. This question has no correct answer. Argue for your choice of variables in the final model.
 
-    ```{r prediction-model}
+    ```{r prediction-model, fig.cap='Figure 6: Prediction model receiver operating characteristics curve.'}
     data_pipeline <-
       breast_cancer |>
       recipe() |>
       update_role(
-        upa,
+        upa_pos,
         age,
+        tubular_grade,
+        nuclear_grade,
+        mitotic_grade,
+        tumsize,
+        er_cyt,
+        pgr_cyt,
+        her2_fish_pos,
         new_role = 'predictor'
       ) |>
       update_role(
         distmet,
         new_role = 'outcome'
       ) |>
-      step_bin2factor(distmet, skip = TRUE)
+      step_bin2factor(distmet, skip = TRUE) |>
+      step_mutate(
+        age_group = case_when(
+          age < 35 ~ '< 35',
+          age >= 35 & age < 40 ~ '35-40',
+          age >= 40 & age < 45 ~ '40-45',
+          age >=45 & age < 50 ~ '45-50',
+          age > 50 ~ '> 50'
+        ) |>
+          factor()
+      )
     
     prediction_model <-
       workflow() |>
@@ -401,26 +459,19 @@ The focus of this assignment is on the prognostic value of the biomarker uPA.
               relevel('yes')
           ) |>
           select(truth)
-      ) #|>
-      # mutate(
-      #   across(
-      #     everything(),
-      #     ~ case_match(
-      #       .,
-      #       'no' ~ 0,
-      #       'yes' ~ 1
-      #     )
-      #   )
-      # )
-    model_predictions
+      )
+    
+    auroc <- roc_auc(model_predictions, truth = truth, .pred_yes)
+    
+    print(auroc)
+    
     roc_curve(model_predictions, truth = truth, .pred_yes) |>
-      autoplot()
-    
-    # roc(distmet ~ model_predictions, data = breast_cancer)
-    
-    # logreg_multi_smoke <- glm(ht_fac ~ age + BMI + smoker_fac + sex_fac, data = bp, family = "binomial")
-    # bp$logreg_multi_smoke_predictions <- predict(logreg_multi_smoke, type = "response")
-    # roc_logreg_multi_smoke <- roc(ht ~ logreg_multi_smoke_predictions, ci = TRUE, data = bp)
+      autoplot() +
+      annotate("text", x = .75, y = .25, label = paste('AUROC', round(auroc$.estimate, 4))) +
+      labs(
+        title = 'Receiver Operator Characteristics'
+      ) +
+      theme_minimal()
     ```
 
 8. **Optional:** When including a covariate in a Cox-model, you implicitly assume that the hazard increases or decreases with the same multiplicative factor for each step on the scale of the variable.
