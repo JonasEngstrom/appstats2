@@ -1,6 +1,9 @@
 ---
 title: "project_one"
-author: "Jonas Engström"
+author:
+  - "Sanna Askman"
+  - "Jonas Engström"
+  - "Hanna Gustafsson"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{project_one}
@@ -353,7 +356,7 @@ The focus of this assignment is on the prognostic value of the biomarker uPA.
 6. Age is often a confounder in non-randomized studies. Evaluate if the effect of uPA is age dependent by adjusting for age in a multivariable Cox-model.
 
     ```{r cox-reg-age, fig.caption='Table 3: Cox regression.'}
-    cox_reg_age <- coxph(Surv(ddfs, distmet) ~ upa + age, data = breast_cancer)
+    cox_reg_age <- coxph(Surv(ddfs, distmet) ~ upa + age, data = breast_cancer |> mutate(upa = upa * 10))
     summary(cox_reg_age)
     tbl_regression(cox_reg_age, exponentiate = TRUE)
     ```
@@ -390,7 +393,7 @@ The focus of this assignment is on the prognostic value of the biomarker uPA.
     ```
 
     ```{r age-group-cox-reg, fig.caption='Table 5: Cox regression.'}
-    cox_reg_age_groups <- coxph(Surv(ddfs, distmet) ~ upa + age_group, data = age_groups)
+    cox_reg_age_groups <- coxph(Surv(ddfs, distmet) ~ upa + age_group, data = age_groups |> mutate(upa = upa * 10))
     summary(cox_reg_age_groups)
     tbl_regression(cox_reg_age_groups, exponentiate = TRUE)
     ```
