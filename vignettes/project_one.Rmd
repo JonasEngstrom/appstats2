@@ -91,12 +91,9 @@ library(survminer)
 
 # Load tidymodels to facilitate regression modelling.
 library(tidymodels)
-
-# Load pROC to make ROC curves.
-library(pROC)
 ```
 
-> The breast cancer data is loaded in this document using the command `library(appstats2)` in the code chunk above. For the sourcecode importing the data from the provided Excel file and formatting it as a tibble, please see the file [`breast_cancer.R`](https://github.com/JonasEngstrom/appstats2/blob/main/data-raw/breast_cancer.R). The Excel file [`breast_cancer.xls`](https://canvas.education.lu.se/courses/34580/files/6061926?module_item_id=1441783) referred to in the code can be found on the Lund University website.
+> The breast cancer data is loaded in this document using the command `library(appstats2)` in the code chunk above. For the sourcecode importing the data from the provided Excel file and formatting it as a tibble, please see the file [`breast_cancer.R`](https://github.com/JonasEngstrom/appstats2/blob/main/data-raw/breast_cancer.R). The Excel file [`breast_cancer.xls`](https://canvas.education.lu.se/courses/34580/files/6061926?module_item_id=1441783) referred to in the code can be found on Lund University’s website. To install the package `appstats2` run the command `devtools::install_github('JonasEngstrom/appstats2')` or read the file [`README.md`](https://github.com/JonasEngstrom/appstats2/blob/main/README.md) on [the package’s GitHub repo](https://github.com/JonasEngstrom/appstats2) for further instructions.
 
 The focus of this assignment is on the prognostic value of the biomarker uPA.
 
@@ -106,9 +103,16 @@ The focus of this assignment is on the prognostic value of the biomarker uPA.
     c. Time and status variable (ddfs and distmet)
     
     ```{r table-one}
+    # Read the breast cancaer data set.
     breast_cancer |>
+      
+      # Relabel the values in the adjuvant variable, for better readability.
       mutate(adjuvant = if_else(adjuvant, 'Received', 'Not received')) |>
+      
+      # Construnct a summary table, i.e. a traditional “Table 1”.
       tbl_summary(
+        
+        # Choose what variables to include.
         include = c(
           age,
           ddfs,
@@ -124,7 +128,11 @@ The focus of this assignment is on the prognostic value of the biomarker uPA.
           her2_fish_pos,
           ki67
         ),
+        
+        # Choose what variable to group the table by.
         by = adjuvant,
+        
+        # Label the variables for better readability.
         label = list(
           age ~ 'Age',
           ddfs ~ 'Distant disease-free survival (years)',
@@ -140,25 +148,44 @@ The focus of this assignment is on the prognostic value of the biomarker uPA.
           her2_fish_pos ~ 'HER2 positivity',
           ki67 ~ 'Ki-67 IHC score'
         ),
-        missing = 'no',
-        missing_text = 'Missing'
+        
+        # Exclude missing values from the table, to reduce clutter.
+        missing = 'no'
       ) |>
+      
+      # Label the grouping variable in the table header.
       modify_spanning_header(c('stat_1', 'stat_2') ~ '**Adjuvant treatment**') |>
+      
+      # Add totals for the variables in the table.
       add_overall() |>
+      
+      # Relocate the newly added Overall column to the left of the grouping variable.
       modify_table_body(~.x %>% relocate(stat_0, .after = label)) |>
-      # add_p() |>
+      
+      # Make the variable labels bold.
       bold_labels() |>
+      
+      # Add footnotes describing the numbers reported in the table.
       modify_footnote_header('Median (Q1, Q3); Frequency (%).', columns = all_stat_cols()) |>
+      
+      # Add footnote explaining abbreviations used in the table.
       modify_footnote_header('ER, estrogen receptor \U03B1; HER2; human epidermal growth factor receptor 2; IHC, immunohistochemistry; Ki-61, Kiel 67; PgR, progesteron receptor; uPA, urokinase plasminogen activator.', columns = 'label') |>
+      
+      # Add an overall caption to the table.
       modify_caption('Table 1. Patient characteristics by treatment received.')
     ```
 
 2. Describe in more detail the characteristics of the groups with low and high uPA, separately (upa_pos=0 and upa_pos=1, respectively).
 
-    ```{r table-two}
+    ```{r table-two, message=FALSE}
+    # Read the breast cancaer data set.
     breast_cancer |>
+      
+      # Relabel the values in the adjuvant and the upa_pos variables, for better readability.
       mutate(adjuvant = if_else(adjuvant, 'Received', 'Not received')) |>
       mutate(upa_pos = if_else(upa_pos, '< 0.231', '≥ 0.231')) |>
+      
+      # Construnct a summary table, i.e. a traditional “Table 1”.
       tbl_summary(
         include = c(
           age,
@@ -175,7 +202,11 @@ The focus of this assignment is on the prognostic value of the biomarker uPA.
           ki67,
           adjuvant
         ),
+        
+        # Choose what variable to group the table by.
         by = upa_pos,
+        
+        # Choose what variables to include.
         label = list(
           age ~ 'Age',
           ddfs ~ 'Distant disease-free survival (years)',
@@ -191,183 +222,371 @@ The focus of this assignment is on the prognostic value of the biomarker uPA.
           ki67 ~ 'Ki-67 IHC score',
           adjuvant ~ 'Adjuvant treatment'
         ),
-        missing = 'no',
-        missing_text = 'Missing'
+        
+        # Exclude missing values from the table, to reduce clutter.
+        missing = 'no'
       ) |>
+      
+      # Label the grouping variable in the table header.
       modify_spanning_header(c('stat_1', 'stat_2') ~ '**uPA (ng/mg)**') |>
+      
+      # Add totals for the variables in the table.
       add_overall() |>
+      
+      # Relocate the newly added Overall column to the left of the grouping variable.
       modify_table_body(~.x %>% relocate(stat_0, .after = label)) |>
-      # add_p() |>
+      
+      # Make the variable labels bold.
       bold_labels() |>
+      
+      # Add footnotes describing the numbers reported in the table.
       modify_footnote_header('Median (Q1, Q3); Frequency (%).', columns = all_stat_cols()) |>
+      
+      # Add footnote explaining abbreviations used in the table.
       modify_footnote_header('ER, estrogen receptor \U03B1; HER2; human epidermal growth factor receptor 2; IHC, immunohistochemistry; Ki-61, Kiel 67; PgR, progesteron receptor; uPA, urokinase plasminogen activator.', columns = 'label') |>
+      
+      # Add an overall caption to the table.
       modify_caption('Table 2. Patient characteristics by uPA level.')
     ```
 
 3. Describe the uPA distribution graphically.
 
-    ```{r upa-linear-distribution, fig.cap='Figure 1: uPA distribution.', warning=FALSE}
+    ```{r upa-linear-distribution, fig.cap='Figure 1: uPA distribution.', warning=FALSE, message=FALSE}
+    # Load the breast cancer data set.
     breast_cancer |>
+      
+      # Make a plot with upa values on the x axis.
       ggplot(aes(x = upa)) +
-        geom_histogram(fill = 'blue3', alpha = .5, color = 'blue3') +
-        geom_boxplot(aes(y = 80), width = 6, alpha = .5, color = 'blue3') +
-        geom_jitter(aes(y = 80), height = 1, alpha = .25, fill = 'blue3', alpha = .5, color = 'blue3') +
+      
+        # Plot a histogram with blue, semitransparent bars.
+        geom_histogram(
+          fill = 'blue3',
+          alpha = .5,
+          color = 'blue3'
+        ) +
+      
+        # Plot a horizontal boxplot along 80 on the y axis, with blue borders.
+        geom_boxplot(
+          aes(y = 80),
+          width = 6,
+          color = 'blue3'
+        ) +
+      
+        # Plot individual observations along 80 on the y axis, represented by
+        # blue semitransparent dots, spread slightly along the y axis, to
+        # facilitate discrimination between the observations.
+        geom_jitter(
+          aes(y = 80),
+          height = 1,
+          alpha = .25,
+          fill = 'blue3',
+          alpha = .5,
+          color = 'blue3'
+        ) +
+      
+        # Change the figure labels, title, and caption.
         labs(
           x = 'uPA (ng/ml)',
           y = 'Count (for histogram)',
           title = 'uPA level distribution',
           caption = 'uPA; urokinase plasminogen activator.'
         ) +
+      
+        # Change the color theme of the graph.
         theme_minimal()
     ```
 
-    ```{r upa-log-distribution, fig.cap='Figure 2: uPA distribution on logarithmic scale due to one extreme outlier.', warning=FALSE}
+    ```{r upa-log-distribution, fig.cap='Figure 2: uPA distribution on logarithmic scale due to one extreme outlier.', warning=FALSE, message=FALSE}
+    # Load the breast cancer data set.
     breast_cancer |>
+      
+      # Make a plot with upa values on the x axis.
       ggplot(aes(x = upa)) +
-        geom_histogram(fill = 'blue3', alpha = .5, color = 'blue3') +
-        geom_boxplot(aes(y = 25), width = 3, alpha = .5, color = 'blue3') +
-        geom_jitter(aes(y = 25), height = 1, alpha = .25, fill = 'blue3', alpha = .5, color = 'blue3') +
+      
+        # Plot a histogram with blue, semitransparent bars.
+        geom_histogram(
+          fill = 'blue3',
+          alpha = .5,
+          color = 'blue3'
+        ) +
+      
+        # Plot a horizontal boxplot along 80 on the y axis, with blue borders.
+        geom_boxplot(
+          aes(y = 25),
+          width = 3,
+          alpha = .5,
+          color = 'blue3'
+        ) +
+      
+        # Plot individual observations along 25 on the y axis, represented by
+        # blue semitransparent dots, spread slightly along the y axis, to
+        # facilitate discrimination between the observations.
+        geom_jitter(
+          aes(y = 25),
+          height = 1,
+          alpha = .25,
+          fill = 'blue3',
+          alpha = .5,
+          color = 'blue3'
+        ) +
+      
+        # Convert the x scale to a logarithmic scale, to make the distribution
+        # of observations clearer, since the data contains an extreme outlier.
         scale_x_log10() +
+      
+        # Change the figure labels, title, and caption.
         labs(
           x = 'uPA (log10(ng/ml))',
           y = 'Count (for histogram)',
           title = 'uPA level distribution',
           caption = 'uPA; urokinase plasminogen activator.'
         ) +
+      
+        # Change the color theme of the graph.
         theme_minimal()
     ```
 
 4. Describe time to first distant metastasis graphically and estimate the fraction, in the underlying population, free from distant metastases five years after diagnosis of primary breast cancer.
 
     ```{r km-plot, fig.cap='Figure 3: Kaplan-Meier plot of time until distant metastases.'}
+    # Create a survival curve from a survival object looking at distmet events
+    # over ddfs time in the breast cancer dataset. Store the result in the
+    # variable survival_fit.
     survival_fit <- survfit(Surv(ddfs, distmet) ~ 1, data = breast_cancer)
     
+    # Calculate the proportion of patients who didn’t have a distmet event by
+    # five years of follow up and store the result in the variable five_year.
     five_year <-
       survival_fit |>
       summary(times = 5)
     
+    # Make a Kaplan-Meier plot and store it in the variable km_plot.
     km_plot <-
       survival_fit |>
       ggsurvplot(
-        legend = 'none',
+        
+        # Change axis labels and title of the plot.
         xlab = 'Follow-up time (years)',
         ylab = 'Proportion without distant metastases',
         title = 'Time until distant metastasis or last follow-up',
+        
+        # Set the line and confidence interval to be bloe and semitransparent.
         palette = alpha(c('blue3'), c(0.5))
       )
     
+    # Plot the Kaplan-Meier plot.
     km_plot$plot +
-      geom_segment(aes(x = 0, xend = 5, y = five_year$surv, yend = five_year$surv), linetype = 'dashed') +
-      geom_segment(aes(x = 5, xend = 5, y = 0, yend = five_year$surv), linetype = 'dashed') +
+      
+      # Plot a dashed lines intersecting at the Kaplan-Meier plot at five
+      # years of follow-up.
+      annotate(
+        'segment', x = 0, xend = 5, y = five_year$surv, yend = five_year$surv,
+        linetype = 'dashed'
+      ) +
+      annotate(
+        'segment', x = 5, xend = 5, y = 0, yend = five_year$surv,
+        linetype = 'dashed'
+      ) +
+      
+      # Change the color theme of the graph.
       theme_minimal() +
+      
+      # Remove the legend, as the plot only contains one group.
       theme(
         legend.position = 'none'
       ) +
-      annotate("text", x = 5.5, y = .875, label = paste(round(five_year$surv * 100), '%'))
+      
+      # Add the percentage without a distmet event after five years of
+      # follow-up to the plot.
+      annotate(
+        "text",
+        x = 5.5,
+        y = .875,
+        label = paste(round(five_year$surv * 100), '%')
+      )
     ```
 
 5. Analyze the association between uPA and metastasis-free survival. Describe it both numerically and graphically. Which measure is appropriate?
 
     ```{r km-plot-by-upa-pos, fig.cap='Figure 4: Kaplan-Meier plot of time until distant metastases by uPA level..'}
-    survival_fit_by_upa_pos <- survfit(Surv(ddfs, distmet) ~ upa_pos, data = breast_cancer)
+    # Create a survival curve from a survival object looking at distmet events
+    # over ddfs time in the breast cancer dataset, stratified by the variable
+    # upa_pos. Store the result in the  variable survival_fit.
+    survival_fit_by_upa_pos <-
+      survfit(Surv(ddfs, distmet) ~ upa_pos, data = breast_cancer)
     
-    # five_year_by_upa_pos <-
-    #   survival_fit_by_upa_pos |>
-    #   summary(times = 5)
-    
+    # Make a Kaplan-Meier plot and store it in the variable km_plot_by_upa_pos.
     km_plot_by_upa_pos <-
       survival_fit_by_upa_pos |>
       ggsurvplot(
+        
+        # Enable plotting of confidence intervals.
         conf.int = TRUE,
+        
+        # Change axis labels, title, and legend of plot.
         xlab = 'Follow-up time (years)',
         ylab = 'Proportion without distant metastases',
         title = 'Time until distant metastasis or last follow-up',
         legend.title = 'Urokinase plasminogen activator',
         legend.labs = c('< 0.231 ng/mg', '≥ 0.231 ng/mg'),
+        
+        # Change lines of plot to be blue and red and semitransparent.
         palette = alpha(c('blue3', 'red3'), c(0.5, 0.5))
       )
     
+    # Plot the Kaplan-Meier plot.
     km_plot_by_upa_pos$plot +
+      
+      # Change color theme of plot.
       theme_minimal() +
+      
+      # Move the legend to the bottom of the plot.
       theme(
         legend.position = 'bottom'
       )
-      # geom_segment(aes(x = 0, xend = 5, y = five_year$surv, yend = five_year$surv), linetype = 'dashed') +
-      # geom_segment(aes(x = 5, xend = 5, y = 0, yend = five_year$surv), linetype = 'dashed')
     ```
 
     ```{r log-model}
+    # Train a logistic regression model using the locigal variable upa_pos
+    # to predict dismet events.
     log_model <-
       glm(distmet ~ upa_pos, 'binomial', breast_cancer)
     
+    # Show a summary of the trained model.
     log_model |>
       summary()
     ```
 
     ```{r log-model-odds-ratio}
+    # Calculate the odds ratio for the second coefficient (i.e. ups_posTRUE)
+    # of the model.
     log_model$coefficients[2] |>
       exp()
     ```
 
-    ```{r upa-relative-risk}
-    # breast_cancer |>
-    #   select(upa_pos, distmet) |>
-    #   tbl_cross(percent = 'row')
+    ```{r upa-relative-risk, message=FALSE}
+    # Calculate relative risk of ditmet events depending on ups_pos status.
     
+    # Load the breast cancer dataset.
     breast_cancer |>
+      
+      # Group the data by ups_pos and distmet.
       group_by(upa_pos, distmet) |>
+      
+      # Calculate the total number of patients in each group combination.
       summarize(n = n()) |>
+      
+      # Ungroup the data.
       ungroup() |>
+      
+      # Drop missing data.
       drop_na() |>
+      
+      # Group by upa_pos.
       group_by(upa_pos) |>
+      
+      # Calculate the total for ups_pos TRUE and FALSE groups respectively.
       mutate(total = sum(n)) |>
+      
+      # Ungroup the data.
       ungroup() |>
+      
+      # Calculate the proportion of patients in each group.
       mutate(proportion = n / total) |>
+      
+      # Remove patients wihtout a distment event.
       filter(distmet) |>
+      
+      # Remove variables other than upa_pos and the proportion variable
+      # previously calculate.
       select(upa_pos, proportion) |>
+      
+      # Pivot the data, so that patients with and without upa_pos TRUE are
+      # reported in differnt variables.
       pivot_wider(names_from = upa_pos, values_from = proportion) |>
+      
+      # Calculate the proportion of patients with ups_pos TRUE to those with
+      # FALSE, which gives the relative risk.
       mutate(relative_risk = `TRUE` / `FALSE`) |>
+      
+      # Extract the relative risk for output.
       pull(relative_risk)
     ```
     
-    ```{r upa-grouped-box-pot, fig.cap='Figure 5: Presence of distant metastases by uPA level.'}
+    ```{r upa-grouped-box-pot, fig.cap='Figure 5: Presence of distant metastases by uPA level.', warning=FALSE}
+    # Load the breast cancer dataset.
     breast_cancer |>
+      
+      # Relabel the variable distmet for better readability.
       mutate(distmet = if_else(distmet, 'Distant metastases', 'No distant metastases')) |>
+      
+      # Make a plot wiht distmit group membership on the x axis and upa level
+      # on the y axis.
       ggplot(aes(x = distmet, y = upa)) +
+      
+        # Plot a grouped boxplot.
         geom_boxplot() +
+      
+        # Plot individual observations represented by semitransparent dots,
+        # spread slightly along the x axis, to facilitate discrimination between
+        # the observations, on top of the boxplots.
         geom_jitter(aes(color = distmet), width = .2, alpha = .4) +
+      
+        # Change axis labels, title, and caption of the plot.
         labs(
           y = 'uPA (log10(ng/mg))',
           title = 'Presence of distant metastases by uPA level',
           caption = 'uPA; urokinase plasminogen activator.'
         ) +
+      
+        # Set y scale to a logarithmic scale to increase clarity, as the data
+        # contains one extreme outlier.
+        scale_y_log10() +
+      
+        # Change the color theme of the plot.
+        theme_minimal() +
+      
+        # Remove legend and x axis label from plot.
         theme(
           legend.position = 'none',
           axis.title.x = element_blank()
         ) +
-        scale_y_log10() +
-        theme_minimal() +
-        theme(
-          legend.position = 'none'
-        ) +
+      
+        # Set dots to be read and blue.
         scale_color_manual(values = c('red3', 'blue3'))
     ```
 
 6. Age is often a confounder in non-randomized studies. Evaluate if the effect of uPA is age dependent by adjusting for age in a multivariable Cox-model.
 
     ```{r cox-reg-age, fig.caption='Table 3: Cox regression.'}
-    cox_reg_age <- coxph(Surv(ddfs, distmet) ~ upa + age, data = breast_cancer |> mutate(upa = upa * 10))
+    # Create a survival object looking at dismet events over ddfs time in the
+    # breast cancer dataset and perform Cox regression by upa and age.
+    cox_reg_age <-
+      coxph(Surv(ddfs, distmet) ~ upa + age, data = breast_cancer)
+    
+    # Display a summary of the Cox regression.
     summary(cox_reg_age)
+    
+    # Display a table of the results of the Cox regression.
     tbl_regression(cox_reg_age, exponentiate = TRUE)
     ```
 
     ```{r cox-reg, fig.caption='Table 4: Cox regression.'}
-    cox_reg <- coxph(Surv(ddfs, distmet) ~ upa, data = breast_cancer)
+    # Create a survival object looking at dismet events over ddfs time in the
+    # breast cancer dataset and perform Cox regression by upa.
+    cox_reg <-
+      coxph(Surv(ddfs, distmet) ~ upa, data = breast_cancer)
+    
+    # Display a summary of the Cox regression.
     summary(cox_reg)
+    
+    # Display a table of the results of the Cox regression.
     tbl_regression(cox_reg, exponentiate = TRUE)
     ```
 
     ```{r age-groups}
+    # Stratify patients in the breast cancer dataset by age group and store the
+    # result in the variable age_groups.
     age_groups <-
       breast_cancer |>
       mutate(age_group = case_when(
@@ -376,40 +595,64 @@ The focus of this assignment is on the prognostic value of the biomarker uPA.
         age >= 40 & age < 45 ~ '40-45',
         age >=45 & age < 50 ~ '45-50',
         age > 50 ~ '> 50') |>
-        # age >= 50 & age < 55 ~ '50-55',
-        # age > 55 ~ '> 55') |>
           ordered(levels = c(
             '< 35',
             '35-40',
             '40-45',
             '45-50',
             '> 50'
-            # '50-55',
-            # '> 55'
           )
         )
       ) |>
-      mutate(age_group = factor(age_group, ordered=FALSE) |> relevel('> 50'))
+      
+      # Remove the order from the factor levels in the age_group variable
+      # and set the group > 50 as the reference group.
+      mutate(
+        age_group = factor(age_group, ordered=FALSE) |> relevel('> 50')
+      )
     ```
 
     ```{r age-group-cox-reg, fig.caption='Table 5: Cox regression.'}
-    cox_reg_age_groups <- coxph(Surv(ddfs, distmet) ~ upa + age_group, data = age_groups |> mutate(upa = upa * 10))
+    # Create a survival object looking at dismet events over ddfs time in the
+    # breast cancer dataset and perform Cox regression by upa and age stratum.
+    cox_reg_age_groups <-
+      coxph(Surv(ddfs, distmet) ~ upa + age_group, data = age_groups)
+    
+    # Display a summary of the Cox regression.
     summary(cox_reg_age_groups)
+    
+    # Display a table of the results of the Cox regression.
     tbl_regression(cox_reg_age_groups, exponentiate = TRUE)
     ```
 
     ```{r age-group-cox-reg-ups-strata, fig.caption='Table 6: Cox regression.'}
-    cox_reg_age_groups_ups_strata <- coxph(Surv(ddfs, distmet) ~ upa_pos + age_group, data = age_groups)
+    # Create a survival object looking at dismet events over ddfs time in the
+    # breast cancer dataset and perform Cox regression by upa_pos and age stratum.
+    cox_reg_age_groups_ups_strata <-
+      coxph(Surv(ddfs, distmet) ~ upa_pos + age_group, data = age_groups)
+    
+    # Display a summary of the Cox regression.
     summary(cox_reg_age_groups_ups_strata)
+    
+    # Display a table of the results of the Cox regression.
     tbl_regression(cox_reg_age_groups_ups_strata, exponentiate = TRUE)
     ```
 
 7. Assume now instead that the aim is to build a prognostic model that can be used to stratify other patients in the underlying population according to risk of developing distant metastases. Which predictors would you like to include in the model and why and how (transformation)? This is not a trivial question. Too many parameters in the model will in general lead to overfit (modelling of noise) and hence bad performance when the model is validated in an independent material, but a model with too few parameters is no better since it will utilize the information in the sample poorly. This question has no correct answer. Argue for your choice of variables in the final model.
 
     ```{r prediction-model, fig.cap='Figure 6: Prediction model receiver operating characteristics curve.'}
+    # Create a prediction model.
+    
+    # Make a pipeline to process the model’s input data.
     data_pipeline <-
+      
+      # Load the breast cancer dataset.
       breast_cancer |>
+      
+      # Initialize a pipeline, known as a recipe in R’s tidymodel package.
       recipe() |>
+      
+      # Chose independent variables.
       update_role(
         upa_pos,
         age,
@@ -422,11 +665,17 @@ The focus of this assignment is on the prognostic value of the biomarker uPA.
         her2_fish_pos,
         new_role = 'predictor'
       ) |>
+      
+      # Chose dependent variable.
       update_role(
         distmet,
         new_role = 'outcome'
       ) |>
+      
+      # Recode the dependent variable as a factor.
       step_bin2factor(distmet, skip = TRUE) |>
+      
+      # Stratify patients by age.
       step_mutate(
         age_group = case_when(
           age < 35 ~ '< 35',
@@ -438,20 +687,40 @@ The focus of this assignment is on the prognostic value of the biomarker uPA.
           factor()
       )
     
+    # Train a logistic regression model.
     prediction_model <-
+      
+      # Initialize a workflow, the second part of tidymodel pipelines, that
+      # takes a recipe (see above) and a model specification to train a model.
       workflow() |>
+      
+      # Define that we want to use a logistic regresion model.
       add_model(
         logistic_reg() |>
           set_engine('glm')
       ) |>
+      
+      # Add the recipe specified above.
       add_recipe(data_pipeline) |>
+      
+      # Fit the workflow model to the breast cancer dataset after
+      # preprocessing the data using the recipe specified.
       fit(breast_cancer)
     
+    # Store predictions and true values in the variable model_predictions in
+    # preparation for evaluation of apparent model performance.
     model_predictions <-
+      
+      # Make predictions using the model.
       prediction_model |>
       predict(breast_cancer, type = 'prob') |>
+      
+      #Add the predictions to a column of the correct answers from input data.
       bind_cols(
         breast_cancer |>
+          
+          # Recode the correct answers as yes and no, to match the model
+          # prediction output.
           mutate(
             truth = case_match(
               distmet,
@@ -459,21 +728,35 @@ The focus of this assignment is on the prognostic value of the biomarker uPA.
               TRUE ~ 'yes'
             ) |>
               factor() |>
+              
+              # Relevel the data so that yes is used as the reference. Another
+              # option here would have been to use .pred_no in the following
+              # statement calculating area under the ROC curve, but we chose
+              # to do it this way.
               relevel('yes')
           ) |>
           select(truth)
       )
     
+    # Calculate the area under the ROC curve for the model.
     auroc <- roc_auc(model_predictions, truth = truth, .pred_yes)
     
+    # Print the area under the ROC curve.
     print(auroc)
     
+    # Plot the ROC curve.
     roc_curve(model_predictions, truth = truth, .pred_yes) |>
       autoplot() +
+      
+      # Add the area under the curve as an annotation to the plot.
       annotate("text", x = .75, y = .25, label = paste('AUROC', round(auroc$.estimate, 4))) +
+      
+      # Add a title to the plot.
       labs(
         title = 'Receiver Operator Characteristics'
       ) +
+      
+      # Change the color theme of the graph.
       theme_minimal()
     ```
 
