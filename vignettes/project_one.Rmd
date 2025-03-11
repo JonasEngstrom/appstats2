@@ -749,12 +749,14 @@ The focus of this assignment is on the prognostic value of the biomarker uPA.
       autoplot() +
       
       # Add the area under the curve as an annotation to the plot.
-      annotate("text", x = .75, y = .25, label = paste('AUROC', round(auroc$.estimate, 4))) +
+      geom_label(x = .75, y = .75, label = paste('AUROC', round(auroc$.estimate, 4))) +
       
       # Add a title to the plot.
       labs(
-        title = 'Receiver Operator Characteristics'
-      ) +
+        title = str_wrap('Receiver operator characteristics of multivariable logistic regression model predicting distant metastases', 48),) +
+      
+      # Add predictors to plot.
+      geom_label(x = .65, y = .3, label = str_wrap('Predictors: urokinase plasminogen activator level, patient age, tumor tubular, nuclear, and mitotic grades, tumor size, cytosol estrogen receptor \U03B1 and progesteron receptor concentration, and human epidermal growth factor receptor-2 gene status.', 30)) +
       
       # Change the color theme of the graph.
       theme_minimal()
